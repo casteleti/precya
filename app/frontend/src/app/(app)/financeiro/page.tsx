@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { DollarSign, TrendingUp, Calendar, CheckCircle, Loader2 } from 'lucide-react'
+import { DollarSign, TrendingUp, Calendar, CheckCircle, Loader2, Printer, Target, Pencil } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { schedulesApi, type Schedule } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { format, startOfMonth, endOfMonth, subMonths, getDate, getDaysInMonth } from 'date-fns'
@@ -16,10 +17,18 @@ function fmtCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+const GOAL_KEY = 'precya_monthly_goal'
+
 export default function FinanceiroPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(new Date())
+  const [goal, setGoal] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0
+    return Number(localStorage.getItem(GOAL_KEY) ?? 0)
+  })
+  const [editingGoal, setEditingGoal] = useState(false)
+  const [goalInput, setGoalInput] = useState('')
 
   useEffect(() => {
     setLoading(true)
@@ -29,6 +38,15 @@ export default function FinanceiroPage() {
       .then(setSchedules)
       .finally(() => setLoading(false))
   }, [selectedMonth])
+
+  function saveGoal() {
+    const v = Number(goalInput.replace(',', '.'))
+    if (!isNaN(v) && v >= 0) {
+      setGoal(v)
+      localStorage.setItem(GOAL_KEY, String(v))
+    }
+    setEditingGoal(false)
+  }
 
   const totalRevenue = schedules.reduce((sum, s) => sum + Number(s.price ?? 0), 0)
   const sessionCount = schedules.length
@@ -64,9 +82,15 @@ export default function FinanceiroPage() {
       className="flex flex-col gap-6 pb-24 md:pb-0">
 
       {/* Header */}
-      <motion.div variants={item}>
-        <h1 className="text-display text-warm-900">Financeiro</h1>
-        <p className="text-sm text-warm-500 mt-1">Acompanhe o faturamento da sua clínica</p>
+      <motion.div variants={item} className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-display text-warm-900">Financeiro</h1>
+          <p className="text-sm text-warm-500 mt-1">Acompanhe o faturamento da sua clínica</p>
+        </div>
+        <Button variant="outline" size="sm" className="gap-1.5 shrink-0 print:hidden"
+          onClick={() => window.print()}>
+          <Printer size={14} /> Imprimir
+        </Button>
       </motion.div>
 
       {/* Month selector */}
@@ -105,6 +129,61 @@ export default function FinanceiroPage() {
           </Card>
         ))}
       </motion.div>
+
+      {/* Meta mensal */}
+      {!loading && (
+        <motion.div variants={item}>
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Target size={15} className="text-rose-400" />
+                <span className="text-sm font-medium text-warm-700">Meta do mês</span>
+              </div>
+              {editingGoal ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-warm-400">R$</span>
+                  <input
+                    autoFocus
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={goalInput}
+                    onChange={e => setGoalInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveGoal(); if (e.key === 'Escape') setEditingGoal(false) }}
+                    className="w-28 text-xs px-2 py-1 rounded-lg border border-warm-200 focus:outline-none focus:border-rose-300"
+                  />
+                  <button onClick={saveGoal}
+                    className="text-xs px-2 py-1 rounded-lg bg-rose-500 text-white hover:bg-rose-600 transition-calm">OK</button>
+                </div>
+              ) : (
+                <button onClick={() => { setGoalInput(String(goal)); setEditingGoal(true) }}
+                  className="flex items-center gap-1 text-xs text-warm-400 hover:text-warm-600 transition-calm">
+                  <Pencil size={11} /> {goal > 0 ? fmtCurrency(goal) : 'Definir meta'}
+                </button>
+              )}
+            </div>
+            {goal > 0 ? (
+              <>
+                <div className="w-full h-2 bg-warm-100 rounded-full overflow-hidden">
+                  <div
+                    className={cn('h-full rounded-full transition-all', totalRevenue >= goal ? 'bg-sage-400' : 'bg-rose-400')}
+                    style={{ width: `${Math.min((totalRevenue / goal) * 100, 100)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-xs text-warm-400">{fmtCurrency(totalRevenue)} atingidos</span>
+                  <span className={cn('text-xs font-medium', totalRevenue >= goal ? 'text-sage-500' : 'text-warm-500')}>
+                    {Math.round((totalRevenue / goal) * 100)}%
+                    {totalRevenue >= goal && ' ✓'}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-warm-400">Defina uma meta para acompanhar seu progresso.</p>
+            )}
+          </Card>
+        </motion.div>
+      )}
 
       {/* Bar chart */}
       {!loading && schedules.length > 0 && (
