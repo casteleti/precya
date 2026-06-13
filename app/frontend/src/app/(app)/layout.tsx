@@ -20,6 +20,8 @@ import type { AuthUser } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { ToastProvider } from '@/lib/toast'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
+import { schedulesApi } from '@/lib/api'
+import { isSameDay } from 'date-fns'
 
 const navItems = [
   { href: '/dashboard',    icon: LayoutDashboard, label: 'Início' },
@@ -38,12 +40,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [pendingToday, setPendingToday] = useState(0)
 
   useEffect(() => {
     const u = getUser()
     if (!u) { router.push('/login'); return }
     setUser(u)
   }, [router])
+
+  useEffect(() => {
+    const now = new Date()
+    const from = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+    const to   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString()
+    schedulesApi.list({ from, to, status: 'not_confirmed' })
+      .then(list => setPendingToday(list.length))
+      .catch(() => {})
+  }, [pathname])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -96,7 +108,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     : 'text-warm-500 hover:bg-warm-100 hover:text-warm-900'
                 )}
               >
-                <item.icon size={18} strokeWidth={1.75} />
+                <div className="relative shrink-0">
+                  <item.icon size={18} strokeWidth={1.75} />
+                  {item.href === '/agenda' && pendingToday > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-white text-[9px] font-bold flex items-center justify-center">
+                      {pendingToday}
+                    </span>
+                  )}
+                </div>
                 {item.label}
                 {active && (
                   <motion.div
@@ -152,7 +171,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     active ? 'text-rose-500' : 'text-warm-400'
                   )}
                 >
-                  <item.icon size={20} strokeWidth={active ? 2 : 1.75} />
+                  <div className="relative">
+                    <item.icon size={20} strokeWidth={active ? 2 : 1.75} />
+                    {item.href === '/agenda' && pendingToday > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-white text-[9px] font-bold flex items-center justify-center">
+                        {pendingToday}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[10px] font-medium">{item.label}</span>
                 </Link>
               )
