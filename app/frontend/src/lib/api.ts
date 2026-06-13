@@ -41,6 +41,29 @@ export async function apiLogin(email: string, password: string) {
   return body as { token: string; user: import('./auth').AuthUser }
 }
 
+export async function apiRegister(data: {
+  clinicName: string; clinicPhone: string; name: string; email: string; password: string
+}) {
+  const res = await fetch(`${BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  const body = await res.json()
+  if (!res.ok) throw new Error(body.error ?? 'Erro ao criar conta.')
+  return body as { token: string; user: import('./auth').AuthUser }
+}
+
+export const authApi = {
+  updateProfile: (data: { name?: string; email?: string }) =>
+    apiFetch<import('./auth').AuthUser>('/auth/me', { method: 'PATCH', body: JSON.stringify(data) }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiFetch<{ ok: boolean }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface Client {

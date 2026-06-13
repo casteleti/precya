@@ -7,6 +7,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import Link from 'next/link'
 import { apiLogin } from '@/lib/api'
 import { saveAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
@@ -151,8 +152,16 @@ export default function LoginPage() {
             </Button>
           </form>
 
+          {/* Cadastro */}
+          <p className="text-center text-sm text-warm-500 mt-6">
+            Não tem uma conta?{' '}
+            <Link href="/cadastro" className="text-rose-500 font-medium hover:underline">
+              Criar conta grátis
+            </Link>
+          </p>
+
           {/* Rodapé */}
-          <p className="text-center text-xs text-warm-400 mt-8">
+          <p className="text-center text-xs text-warm-400 mt-4">
             Ao entrar, você concorda com nossos{' '}
             <span className="text-warm-600 cursor-pointer hover:text-rose-500 transition-calm">
               Termos de uso
