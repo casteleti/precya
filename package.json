@@ -1,0 +1,20 @@
+{
+  "name": "precya",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "docker-compose up",
+    "dev:logs": "docker-compose logs -f",
+    "build": "docker-compose build",
+    "down": "docker-compose down",
+    "setup": "bash scripts/setup.sh",
+    "deploy": "bash scripts/deploy.sh",
+    "backup": "bash scripts/backup.sh",
+    "lint": "npm run lint --workspace=app/frontend && npm run lint --workspace=app/backend",
+    "test": "npm run test --workspace=app/backend"
+  },
+  "workspaces": [
+    "app/frontend",
+    "app/backend"
+  ]
+}

@@ -1,0 +1,66 @@
+services:
+  precya-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-precya_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_NAME:-precya_prod}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-precya_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  precya-redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  precya-api:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    ports:
+      - "5003:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://${DB_USER:-precya_user}:${DB_PASSWORD:-changeme}@precya-postgres:5432/${DB_NAME:-precya_prod}
+      REDIS_URL: redis://precya-redis:6379/1
+    depends_on:
+      precya-postgres:
+        condition: service_healthy
+      precya-redis:
+        condition: service_healthy
+    volumes:
+      - ./app/backend/src:/app/src
+    command: npm run dev
+
+  precya-web:
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5002:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5003/api
+      NEXTAUTH_URL: http://localhost:5002
+      DATABASE_URL: postgresql://${DB_USER:-precya_user}:${DB_PASSWORD:-changeme}@precya-postgres:5432/${DB_NAME:-precya_prod}
+    depends_on:
+      - precya-api
+    volumes:
+      - ./app/frontend/src:/app/src
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,64 @@
+services:
+  precya-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  precya-redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  precya-api:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "5003:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+    depends_on:
+      precya-postgres:
+        condition: service_healthy
+      precya-redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  precya-web:
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "5002:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+    depends_on:
+      - precya-api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
