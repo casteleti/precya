@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock, Edit2, X, CheckCircle2, Ban, MessageCircle } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock, Edit2, X, CheckCircle2, Ban, MessageCircle, Play } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { schedulesApi, type Schedule } from '@/lib/api'
+import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns'
@@ -23,6 +24,7 @@ const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } 
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } }
 
 export default function AgendaPage() {
+  const router = useRouter()
   const { toast } = useToast()
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [selectedDay, setSelectedDay] = useState(new Date())
@@ -246,6 +248,12 @@ export default function AgendaPage() {
                       {isActive && (
                         <div className="px-4 pb-3 flex flex-col gap-2">
                           <div className="flex items-center gap-2 flex-wrap">
+                            {(s.status === 'not_confirmed' || s.status === 'confirmed') && (
+                              <button onClick={() => router.push(`/sessao/${s.id}`)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-medium hover:bg-rose-600 transition-calm">
+                                <Play size={12} /> Atender
+                              </button>
+                            )}
                             <button onClick={() => openEdit(s)}
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warm-100 text-warm-700 text-xs font-medium hover:bg-warm-200 transition-calm">
                               <Edit2 size={12} /> Editar

@@ -122,6 +122,7 @@ export const schedulesApi = {
     const qs = params ? '?' + new URLSearchParams(params).toString() : ''
     return apiFetch<Schedule[]>(`/api/schedules${qs}`)
   },
+  get: (id: string) => apiFetch<Schedule>(`/api/schedules/${id}`),
   create: (data: {
     clientId: string; startTime: string; endTime: string;
     price?: number; notes?: string
