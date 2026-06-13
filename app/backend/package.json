@@ -19,7 +19,9 @@
     "fastify": "^4.28.0",
     "@fastify/cors": "^9.0.0",
     "@fastify/jwt": "^8.0.0",
-    "@fastify/redis": "^6.1.0"
+    "@fastify/redis": "^6.1.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/node": "^22",
@@ -29,6 +31,8 @@
     "prisma": "^5.22.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
     "vitest": "^2.0.0"
   }
 }
