@@ -6,7 +6,7 @@ import { DollarSign, TrendingUp, Calendar, CheckCircle, Loader2 } from 'lucide-r
 import { Card, CardContent } from '@/components/ui/card'
 import { schedulesApi, type Schedule } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import { format, startOfMonth, endOfMonth, subMonths, getDate, getDaysInMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } }
@@ -47,6 +47,17 @@ export default function FinanceiroPage() {
   const topClients = Object.values(byClient).sort((a, b) => b.total - a.total).slice(0, 5)
 
   const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i))
+
+  // Build daily revenue data for bar chart
+  const daysInMonth = getDaysInMonth(selectedMonth)
+  const dailyRevenue = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1
+    const total = schedules
+      .filter(s => getDate(new Date(s.startTime)) === day)
+      .reduce((sum, s) => sum + Number(s.price ?? 0), 0)
+    return { day, total }
+  })
+  const maxDaily = Math.max(...dailyRevenue.map(d => d.total), 1)
 
   return (
     <motion.div variants={container} initial="hidden" animate="show"
@@ -94,6 +105,31 @@ export default function FinanceiroPage() {
           </Card>
         ))}
       </motion.div>
+
+      {/* Bar chart */}
+      {!loading && schedules.length > 0 && (
+        <motion.div variants={item}>
+          <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide mb-3">Faturamento por dia</h2>
+          <Card className="p-4">
+            <div className="flex items-end gap-[3px] h-24 w-full">
+              {dailyRevenue.map(({ day, total }) => (
+                <div key={day} className="flex-1 flex flex-col items-center gap-1 group">
+                  <div
+                    className="w-full rounded-t-sm bg-rose-200 group-hover:bg-rose-400 transition-colors relative"
+                    style={{ height: `${Math.max((total / maxDaily) * 80, total > 0 ? 4 : 0)}px` }}
+                    title={`Dia ${day}: ${fmtCurrency(total)}`}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between mt-2">
+              <span className="text-[10px] text-warm-400">1</span>
+              <span className="text-[10px] text-warm-400">{Math.ceil(daysInMonth / 2)}</span>
+              <span className="text-[10px] text-warm-400">{daysInMonth}</span>
+            </div>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Sessions list */}
       <motion.div variants={item}>

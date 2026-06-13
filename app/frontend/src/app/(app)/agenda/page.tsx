@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock, Edit2, X, CheckCircle2, Ban } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { schedulesApi, type Schedule } from '@/lib/api'
+import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -23,12 +23,14 @@ const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } 
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } }
 
 export default function AgendaPage() {
+  const { toast } = useToast()
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [selectedDay, setSelectedDay] = useState(new Date())
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [editSchedule, setEditSchedule] = useState<Schedule | null>(null)
+  const [actionId, setActionId] = useState<string | null>(null)
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -49,11 +51,30 @@ export default function AgendaPage() {
   const daySchedules = schedules.filter(s => isSameDay(parseISO(s.startTime), selectedDay))
 
   async function handleStatusChange(id: string, status: string) {
-    await schedulesApi.patch(id, { status })
+    try {
+      await schedulesApi.patch(id, { status })
+      const labels: Record<string, string> = { confirmed: 'Sessão confirmada.', completed: 'Sessão concluída.', cancelled: 'Sessão cancelada.' }
+      toast(labels[status] ?? 'Status atualizado.')
+    } catch {
+      toast('Erro ao atualizar status.', 'error')
+    }
+    setActionId(null)
     load()
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm('Remover este agendamento?')) return
+    try {
+      await schedulesApi.delete(id)
+      toast('Agendamento removido.')
+      load()
+    } catch {
+      toast('Erro ao remover.', 'error')
+    }
+  }
+
   function openCreate() { setEditSchedule(null); setModalOpen(true) }
+  function openEdit(s: Schedule) { setEditSchedule(s); setModalOpen(true); setActionId(null) }
 
   return (
     <>
@@ -138,43 +159,71 @@ export default function AgendaPage() {
                 .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
                 .map(s => {
                   const cfg = statusConfig[s.status] ?? statusConfig.not_confirmed
+                  const isActive = actionId === s.id
+                  const isDone = s.status === 'completed' || s.status === 'cancelled'
                   return (
-                    <div key={s.id} className="flex items-center gap-4 px-4 py-3.5">
-                      <div className="flex flex-col items-center w-14 shrink-0">
-                        <span className="text-sm font-bold text-warm-900">
-                          {format(parseISO(s.startTime), 'HH:mm')}
-                        </span>
-                        <span className="text-[10px] text-warm-400">
-                          {format(parseISO(s.endTime), 'HH:mm')}
-                        </span>
-                      </div>
-                      <div className="w-0.5 h-10 bg-warm-100 rounded-full shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-warm-900 truncate">{s.client.name}</p>
-                        {s.notes && <p className="text-xs text-warm-400 truncate mt-0.5">{s.notes}</p>}
-                        {s.price && (
-                          <p className="text-xs text-sage-600 mt-0.5">
-                            {Number(s.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-1 items-end shrink-0">
-                        <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-medium border', cfg.color)}>
-                          {cfg.label}
-                        </span>
-                        {s.status === 'confirmed' && (
-                          <button onClick={() => handleStatusChange(s.id, 'completed')}
-                            className="text-[11px] text-sage-500 hover:text-sage-700 transition-calm">
-                            Concluir →
+                    <div key={s.id}>
+                      <div className="flex items-center gap-4 px-4 py-3.5">
+                        <div className="flex flex-col items-center w-14 shrink-0">
+                          <span className="text-sm font-bold text-warm-900">
+                            {format(parseISO(s.startTime), 'HH:mm')}
+                          </span>
+                          <span className="text-[10px] text-warm-400">
+                            {format(parseISO(s.endTime), 'HH:mm')}
+                          </span>
+                        </div>
+                        <div className="w-0.5 h-10 bg-warm-100 rounded-full shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className={cn('text-sm font-medium truncate', isDone ? 'text-warm-400 line-through' : 'text-warm-900')}>{s.client.name}</p>
+                          {s.notes && <p className="text-xs text-warm-400 truncate mt-0.5">{s.notes}</p>}
+                          {s.price && (
+                            <p className="text-xs text-sage-600 mt-0.5">
+                              {Number(s.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-medium border', cfg.color)}>
+                            {cfg.label}
+                          </span>
+                          <button
+                            onClick={() => setActionId(isActive ? null : s.id)}
+                            className={cn('p-1 rounded-lg transition-calm', isActive ? 'bg-warm-100 text-warm-700' : 'text-warm-300 hover:text-warm-600')}
+                          >
+                            {isActive ? <X size={15} /> : <Edit2 size={14} />}
                           </button>
-                        )}
-                        {s.status === 'not_confirmed' && (
-                          <button onClick={() => handleStatusChange(s.id, 'confirmed')}
-                            className="text-[11px] text-amber-500 hover:text-amber-700 transition-calm">
-                            Confirmar →
-                          </button>
-                        )}
+                        </div>
                       </div>
+                      {isActive && (
+                        <div className="flex items-center gap-2 px-4 pb-3">
+                          <button onClick={() => openEdit(s)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warm-100 text-warm-700 text-xs font-medium hover:bg-warm-200 transition-calm">
+                            <Edit2 size={12} /> Editar
+                          </button>
+                          {s.status === 'not_confirmed' && (
+                            <button onClick={() => handleStatusChange(s.id, 'confirmed')}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-medium hover:bg-amber-100 transition-calm">
+                              <CheckCircle2 size={12} /> Confirmar
+                            </button>
+                          )}
+                          {(s.status === 'not_confirmed' || s.status === 'confirmed') && (
+                            <button onClick={() => handleStatusChange(s.id, 'completed')}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sage-50 text-sage-600 text-xs font-medium hover:bg-sage-100 transition-calm">
+                              <CheckCircle2 size={12} /> Concluir
+                            </button>
+                          )}
+                          {s.status !== 'cancelled' && (
+                            <button onClick={() => handleStatusChange(s.id, 'cancelled')}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-400 text-xs font-medium hover:bg-red-100 transition-calm">
+                              <Ban size={12} /> Cancelar
+                            </button>
+                          )}
+                          <button onClick={() => handleDelete(s.id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 text-xs font-medium hover:bg-red-100 transition-calm ml-auto">
+                            <X size={12} /> Remover
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -187,8 +236,8 @@ export default function AgendaPage() {
         open={modalOpen}
         schedule={editSchedule}
         defaultDate={selectedDay}
-        onClose={() => setModalOpen(false)}
-        onSaved={load}
+        onClose={() => { setModalOpen(false); setActionId(null) }}
+        onSaved={() => { load(); setActionId(null) }}
       />
     </>
   )

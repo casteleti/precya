@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Calendar, TrendingUp, Users, DollarSign, ArrowRight, Clock, Loader2 } from 'lucide-react'
+import { Calendar, TrendingUp, Users, DollarSign, ArrowRight, Clock, Loader2, ChevronRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { getUser } from '@/lib/auth'
 import { dashboardApi, type DashboardData } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
+import { format, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 function greeting(name: string) {
@@ -46,6 +46,12 @@ export default function DashboardPage() {
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  // Next session today (not yet completed/cancelled)
+  const now = new Date()
+  const nextToday = data?.upcomingSchedules
+    ?.filter(s => isSameDay(new Date(s.startTime), now) && new Date(s.startTime) >= now)
+    ?.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0]
 
   const kpis = [
     {
@@ -85,6 +91,26 @@ export default function DashboardPage() {
         </h1>
         <p className="text-sm text-warm-500 mt-1">Aqui está um resumo da sua clínica hoje.</p>
       </motion.div>
+
+      {/* Próxima sessão de hoje */}
+      {nextToday && (
+        <motion.div variants={item}>
+          <div className="rounded-xl bg-rose-gradient px-5 py-4 flex items-center gap-4 cursor-pointer hover:shadow-card transition-calm"
+            onClick={() => router.push('/agenda')}>
+            <div className="w-10 h-10 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
+              <Clock size={18} className="text-rose-500" strokeWidth={1.75} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-warm-500 uppercase tracking-wide font-medium">Próxima sessão</p>
+              <p className="text-sm font-semibold text-warm-900 truncate">{nextToday.client.name}</p>
+              <p className="text-xs text-warm-500">
+                {format(new Date(nextToday.startTime), 'HH:mm')} – {format(new Date(nextToday.endTime), 'HH:mm')}
+              </p>
+            </div>
+            <ChevronRight size={16} className="text-warm-400 shrink-0" />
+          </div>
+        </motion.div>
+      )}
 
       {/* KPIs */}
       <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
