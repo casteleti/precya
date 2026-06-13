@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock } from 'lucide-react'
+import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock, MessageCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ClientModal } from '@/components/clients/ClientModal'
@@ -108,9 +108,17 @@ export default function ClientDetailPage() {
                     {client.status}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 mt-1 text-sm text-warm-500">
-                  <Phone size={13} strokeWidth={1.75} />
-                  <span>{client.phone}</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-1 text-sm text-warm-500">
+                    <Phone size={13} strokeWidth={1.75} />
+                    <span>{client.phone}</span>
+                  </div>
+                  <a
+                    href={`https://wa.me/55${client.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${client.name.split(' ')[0]}, tudo bem?`)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-green-500 hover:text-green-700 font-medium transition-calm">
+                    <MessageCircle size={13} strokeWidth={1.75} /> WhatsApp
+                  </a>
                 </div>
                 {client.birthDate && (
                   <div className="flex items-center gap-1 mt-0.5 text-sm text-warm-400">

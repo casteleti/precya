@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock, Edit2, X, CheckCircle2, Ban } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock, Edit2, X, CheckCircle2, Ban, MessageCircle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { schedulesApi, type Schedule } from '@/lib/api'
@@ -31,6 +31,8 @@ export default function AgendaPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editSchedule, setEditSchedule] = useState<Schedule | null>(null)
   const [actionId, setActionId] = useState<string | null>(null)
+  const [noteId, setNoteId] = useState<string | null>(null)
+  const [noteText, setNoteText] = useState('')
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -49,6 +51,25 @@ export default function AgendaPage() {
   useEffect(() => { load() }, [load])
 
   const daySchedules = schedules.filter(s => isSameDay(parseISO(s.startTime), selectedDay))
+
+  function whatsappUrl(phone: string, name: string) {
+    const clean = phone.replace(/\D/g, '')
+    const full = clean.startsWith('55') ? clean : `55${clean}`
+    const msg = encodeURIComponent(`Olá ${name.split(' ')[0]}, tudo bem? Passando para confirmar nossa sessão. 😊`)
+    return `https://wa.me/${full}?text=${msg}`
+  }
+
+  async function handleSaveNote(id: string) {
+    try {
+      await schedulesApi.patch(id, { notes: noteText })
+      toast('Nota salva.')
+    } catch {
+      toast('Erro ao salvar nota.', 'error')
+    }
+    setNoteId(null)
+    setNoteText('')
+    load()
+  }
 
   async function handleStatusChange(id: string, status: string) {
     try {
@@ -195,33 +216,59 @@ export default function AgendaPage() {
                         </div>
                       </div>
                       {isActive && (
-                        <div className="flex items-center gap-2 px-4 pb-3">
-                          <button onClick={() => openEdit(s)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warm-100 text-warm-700 text-xs font-medium hover:bg-warm-200 transition-calm">
-                            <Edit2 size={12} /> Editar
-                          </button>
-                          {s.status === 'not_confirmed' && (
-                            <button onClick={() => handleStatusChange(s.id, 'confirmed')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-medium hover:bg-amber-100 transition-calm">
-                              <CheckCircle2 size={12} /> Confirmar
+                        <div className="px-4 pb-3 flex flex-col gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button onClick={() => openEdit(s)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warm-100 text-warm-700 text-xs font-medium hover:bg-warm-200 transition-calm">
+                              <Edit2 size={12} /> Editar
                             </button>
-                          )}
-                          {(s.status === 'not_confirmed' || s.status === 'confirmed') && (
-                            <button onClick={() => handleStatusChange(s.id, 'completed')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sage-50 text-sage-600 text-xs font-medium hover:bg-sage-100 transition-calm">
-                              <CheckCircle2 size={12} /> Concluir
+                            <a href={whatsappUrl(s.client.phone, s.client.name)} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-600 text-xs font-medium hover:bg-green-100 transition-calm">
+                              <MessageCircle size={12} /> WhatsApp
+                            </a>
+                            {s.status === 'not_confirmed' && (
+                              <button onClick={() => handleStatusChange(s.id, 'confirmed')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-medium hover:bg-amber-100 transition-calm">
+                                <CheckCircle2 size={12} /> Confirmar
+                              </button>
+                            )}
+                            {(s.status === 'not_confirmed' || s.status === 'confirmed') && (
+                              <button onClick={() => { handleStatusChange(s.id, 'completed'); setNoteId(s.id); setNoteText(s.notes ?? '') }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sage-50 text-sage-600 text-xs font-medium hover:bg-sage-100 transition-calm">
+                                <CheckCircle2 size={12} /> Concluir
+                              </button>
+                            )}
+                            {s.status !== 'cancelled' && (
+                              <button onClick={() => handleStatusChange(s.id, 'cancelled')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-400 text-xs font-medium hover:bg-red-100 transition-calm">
+                                <Ban size={12} /> Cancelar
+                              </button>
+                            )}
+                            <button onClick={() => handleDelete(s.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 text-xs font-medium hover:bg-red-100 transition-calm ml-auto">
+                              <X size={12} /> Remover
                             </button>
+                          </div>
+                          {/* Nota inline */}
+                          {noteId === s.id && (
+                            <div className="flex gap-2 mt-1">
+                              <input
+                                autoFocus
+                                value={noteText}
+                                onChange={e => setNoteText(e.target.value)}
+                                placeholder="Anotações da sessão..."
+                                className="flex-1 text-xs px-3 py-2 rounded-lg border border-warm-200 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-100"
+                              />
+                              <button onClick={() => handleSaveNote(s.id)}
+                                className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-medium hover:bg-rose-600 transition-calm">
+                                Salvar
+                              </button>
+                              <button onClick={() => { setNoteId(null); setNoteText('') }}
+                                className="px-3 py-1.5 rounded-lg bg-warm-100 text-warm-500 text-xs hover:bg-warm-200 transition-calm">
+                                <X size={12} />
+                              </button>
+                            </div>
                           )}
-                          {s.status !== 'cancelled' && (
-                            <button onClick={() => handleStatusChange(s.id, 'cancelled')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-400 text-xs font-medium hover:bg-red-100 transition-calm">
-                              <Ban size={12} /> Cancelar
-                            </button>
-                          )}
-                          <button onClick={() => handleDelete(s.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 text-xs font-medium hover:bg-red-100 transition-calm ml-auto">
-                            <X size={12} /> Remover
-                          </button>
                         </div>
                       )}
                     </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Plus, Users, Phone, Calendar, TrendingUp, MoreVertical, Loader2 } from 'lucide-react'
+import { Search, Plus, Users, Phone, Calendar, TrendingUp, MoreVertical, Loader2, MessageCircle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -146,6 +146,13 @@ export default function ClientesPage() {
                     <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-medium border', cfg.class)}>
                       {cfg.label}
                     </span>
+                    <a
+                      href={`https://wa.me/55${c.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${c.name.split(' ')[0]}, tudo bem?`)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      className="text-green-400 hover:text-green-600 transition-calm p-1">
+                      <MessageCircle size={16} />
+                    </a>
                     <button
                       onClick={e => { e.stopPropagation(); openEdit(c) }}
                       className="text-warm-300 hover:text-warm-600 transition-calm p-1">
