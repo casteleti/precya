@@ -1,3 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Design tokens — Precya */
+    --rose-50:  #FFF5F3;
+    --rose-100: #FCE8E4;
+    --rose-200: #F5D5CF;
+    --rose-300: #E8B8AE;
+    --rose-400: #D98F84;
+    --rose-500: #C96F63;
+
+    --sage-50:  #F4F8F2;
+    --sage-100: #E7F0E2;
+    --sage-200: #D2E2CA;
+    --sage-300: #B5CEA8;
+    --sage-400: #95B788;
+    --sage-500: #789D6B;
+
+    --sky-50:  #F4FAFC;
+    --sky-100: #E8F4F8;
+    --sky-200: #D6EAF1;
+    --sky-300: #BEDCE8;
+    --sky-400: #99C4D6;
+    --sky-500: #73A9C0;
+
+    --warm-0:   #FFFFFF;
+    --warm-50:  #FCFBFA;
+    --warm-100: #F8F7F5;
+    --warm-200: #EFECE8;
+    --warm-300: #DDD8D2;
+    --warm-400: #B8B1AA;
+    --warm-500: #8F8780;
+    --warm-700: #5A534D;
+    --warm-900: #2F2A26;
+
+    --champagne: #D6B98C;
+    --gold:      #E7D5B5;
+
+    --success-bg:   #EFF8F0;
+    --success-text: #5F8D61;
+    --warning-bg:   #FFF4EC;
+    --warning-text: #D08B5A;
+    --error-bg:     #FFF0EE;
+    --error-text:   #C96F63;
+
+    --background: #FCFBFA;
+    --surface:    #FFFFFF;
+
+    --radius:        16px;
+    --shadow-soft:   0 4px 20px rgba(0,0,0,0.06);
+    --shadow-card:   0 8px 32px rgba(0,0,0,0.04);
+    --transition:    all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Inter', Poppins, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--warm-900);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* Scrollbar suave */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--warm-100); }
+  ::-webkit-scrollbar-thumb { background: var(--warm-300); border-radius: 99px; }
+}
+
+@layer utilities {
+  .transition-calm {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .shadow-soft { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .shadow-card { box-shadow: 0 8px 32px rgba(0,0,0,0.04); }
+
+  /* Texto */
+  .text-display { font-size: 32px; line-height: 1.2; font-weight: 500; }
+  .text-title   { font-size: 24px; line-height: 1.2; font-weight: 500; }
+  .text-body-lg { font-size: 18px; line-height: 1.6; font-weight: 400; }
+  .text-body    { font-size: 16px; line-height: 1.6; font-weight: 400; }
+}
