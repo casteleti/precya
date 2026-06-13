@@ -17,7 +17,7 @@ export default async function authRoute(app: FastifyInstance) {
           type: 'object',
           required: ['email', 'password'],
           properties: {
-            email:    { type: 'string', format: 'email' },
+            email:    { type: 'string' },
             password: { type: 'string', minLength: 1 },
           },
         },
