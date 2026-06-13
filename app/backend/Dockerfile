@@ -22,5 +22,6 @@ COPY --from=builder /app/app/backend/dist ./dist
 COPY --from=deps /app/node_modules ./node_modules
 COPY app/backend/package.json ./
 COPY app/backend/prisma ./prisma
+RUN ./node_modules/.bin/prisma generate --schema ./prisma/schema.prisma
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
