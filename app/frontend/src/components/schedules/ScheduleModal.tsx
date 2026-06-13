@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { schedulesApi, clientsApi, type Schedule, type Client } from '@/lib/api'
 import { format } from 'date-fns'
+import { useToast } from '@/lib/toast'
 
 interface Props {
   open: boolean
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }: Props) {
+  const { toast } = useToast()
   const [clientSearch, setClientSearch] = useState('')
   const [clientOptions, setClientOptions] = useState<Client[]>([])
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
@@ -86,9 +88,12 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
           notes: notes || undefined,
         })
       }
+      toast(schedule ? 'Agendamento atualizado.' : 'Agendamento criado.')
       onSaved(); onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar.')
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar.'
+      setError(msg)
+      toast(msg, 'error')
     } finally {
       setLoading(false)
     }

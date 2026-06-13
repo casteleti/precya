@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ClientModal } from '@/components/clients/ClientModal'
+import { useRouter } from 'next/navigation'
 
 const statusConfig = {
   ativo:   { label: 'Ativo',   class: 'bg-sage-50 text-sage-600 border-sage-200' },
@@ -23,6 +24,7 @@ const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } 
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } }
 
 export default function ClientesPage() {
+  const router = useRouter()
   const [clients, setClients] = useState<Client[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -118,7 +120,7 @@ export default function ClientesPage() {
                 const cfg = statusConfig[c.status] ?? statusConfig.ativo
                 return (
                   <div key={c.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-warm-50 transition-calm cursor-pointer"
-                    onClick={() => openEdit(c)}>
+                    onClick={() => router.push(`/clientes/${c.id}`)}>
                     <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
                       <span className="text-sm font-medium text-rose-500">
                         {c.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
@@ -145,8 +147,8 @@ export default function ClientesPage() {
                       {cfg.label}
                     </span>
                     <button
-                      onClick={e => { e.stopPropagation(); handleDelete(c.id) }}
-                      className="text-warm-300 hover:text-rose-400 transition-calm p-1">
+                      onClick={e => { e.stopPropagation(); openEdit(c) }}
+                      className="text-warm-300 hover:text-warm-600 transition-calm p-1">
                       <MoreVertical size={16} />
                     </button>
                   </div>

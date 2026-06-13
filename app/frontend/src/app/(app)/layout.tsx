@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getUser, clearAuth } from '@/lib/auth'
 import type { AuthUser } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { ToastProvider } from '@/lib/toast'
 
 const navItems = [
   { href: '/dashboard',    icon: LayoutDashboard, label: 'Início' },
@@ -47,6 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
+    <ToastProvider>
     <div className="min-h-screen bg-warm-50 flex">
 
       {/* Sidebar — desktop */}
@@ -134,5 +136,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
       </main>
     </div>
+    </ToastProvider>
   )
 }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { clientsApi, type Client } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/lib/toast'
 
 interface Props {
   open: boolean
@@ -21,6 +22,7 @@ const statusOptions = [
 ]
 
 export function ClientModal({ open, client, onClose, onSaved }: Props) {
+  const { toast } = useToast()
   const [name, setName]       = useState('')
   const [phone, setPhone]     = useState('')
   const [birth, setBirth]     = useState('')
@@ -53,10 +55,13 @@ export function ClientModal({ open, client, onClose, onSaved }: Props) {
       } else {
         await clientsApi.create({ name: name.trim(), phone: phone.trim(), birthDate: birth || undefined, status: status as 'ativo' | 'risco' | 'inativo' })
       }
+      toast(client ? 'Cliente atualizado.' : 'Cliente criado com sucesso.')
       onSaved()
       onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar.')
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar.'
+      setError(msg)
+      toast(msg, 'error')
     } finally {
       setLoading(false)
     }
