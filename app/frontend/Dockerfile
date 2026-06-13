@@ -18,9 +18,11 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-COPY --from=builder /app/app/frontend/.next/standalone ./
-COPY --from=builder /app/app/frontend/.next/static ./.next/static
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/app/frontend/.next ./.next
+COPY app/frontend/package.json ./
+COPY app/frontend/next.config.js ./
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-CMD ["node", "server.js"]
+CMD ["./node_modules/.bin/next", "start", "-p", "3000", "-H", "0.0.0.0"]
