@@ -7,9 +7,9 @@ import { Calendar, TrendingUp, Users, DollarSign, ArrowRight, Clock, Loader2, Ch
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { getUser } from '@/lib/auth'
-import { dashboardApi, type DashboardData } from '@/lib/api'
+import { dashboardApi, clientsApi, type DashboardData, type Client } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { format, isSameDay } from 'date-fns'
+import { format, isSameDay, addDays, getMonth, getDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 function greeting(name: string) {
@@ -39,12 +39,30 @@ export default function DashboardPage() {
   const user = getUser()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [birthdays, setBirthdays] = useState<Client[]>([])
 
   useEffect(() => {
     dashboardApi.get()
       .then(setData)
       .catch(() => {})
       .finally(() => setLoading(false))
+
+    // Fetch clients to find upcoming birthdays
+    clientsApi.list({ limit: '200', status: 'ativo' }).then(res => {
+      const today = new Date()
+      const upcoming = res.clients.filter(c => {
+        if (!c.birthDate) return false
+        const bday = new Date(c.birthDate)
+        const thisYear = new Date(today.getFullYear(), getMonth(bday), getDate(bday))
+        const diff = (thisYear.getTime() - today.getTime()) / 86400000
+        return diff >= 0 && diff <= 7
+      }).sort((a, b) => {
+        const da = getDate(new Date(a.birthDate!))
+        const db = getDate(new Date(b.birthDate!))
+        return da - db
+      })
+      setBirthdays(upcoming)
+    }).catch(() => {})
   }, [])
 
   // Next session today (not yet completed/cancelled)
@@ -198,6 +216,39 @@ export default function DashboardPage() {
           </Card>
         )}
       </motion.div>
+
+      {/* Aniversariantes */}
+      {birthdays.length > 0 && (
+        <motion.div variants={item}>
+          <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide mb-3">🎂 Aniversariantes (7 dias)</h2>
+          <Card className="divide-y divide-warm-100">
+            {birthdays.map(c => {
+              const bday = new Date(c.birthDate!)
+              const thisYear = new Date(new Date().getFullYear(), getMonth(bday), getDate(bday))
+              const isToday = isSameDay(thisYear, new Date())
+              const isTomorrow = isSameDay(thisYear, addDays(new Date(), 1))
+              const label = isToday ? 'Hoje! 🎉' : isTomorrow ? 'Amanhã' : format(thisYear, "dd 'de' MMM", { locale: ptBR })
+              return (
+                <div key={c.id} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-warm-50 transition-calm"
+                  onClick={() => router.push(`/clientes/${c.id}`)}>
+                  <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-medium text-rose-500">
+                      {c.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-warm-900 truncate">{c.name}</p>
+                    <p className="text-xs text-warm-400">{format(bday, "dd 'de' MMMM", { locale: ptBR })}</p>
+                  </div>
+                  <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', isToday ? 'bg-rose-100 text-rose-600' : 'bg-warm-100 text-warm-500')}>
+                    {label}
+                  </span>
+                </div>
+              )
+            })}
+          </Card>
+        </motion.div>
+      )}
 
       {/* Insight */}
       <motion.div variants={item}>
