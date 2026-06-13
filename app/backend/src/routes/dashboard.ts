@@ -49,12 +49,32 @@ export default async function dashboardRoute(app: FastifyInstance) {
     })
     const returnRate = totalClients > 0 ? Math.round((returningClients / totalClients) * 100) : 0
 
+    // Last 6 months revenue
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+    const completedLast6 = await prisma.schedule.findMany({
+      where: { clinicId, status: 'completed', startTime: { gte: sixMonthsAgo } },
+      select: { startTime: true, price: true },
+    })
+    const revenueByMonth: Record<string, number> = {}
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      revenueByMonth[key] = 0
+    }
+    for (const s of completedLast6) {
+      const d = new Date(s.startTime)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      if (key in revenueByMonth) revenueByMonth[key] += Number(s.price ?? 0)
+    }
+    const monthlyRevenue = Object.entries(revenueByMonth).map(([month, total]) => ({ month, total }))
+
     return {
       todaySchedules,
       activeClients,
       monthRevenue: Number(monthRevenue._sum.price ?? 0),
       returnRate,
       upcomingSchedules,
+      monthlyRevenue,
     }
   })
 }

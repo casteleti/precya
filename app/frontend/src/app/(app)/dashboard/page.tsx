@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { getUser } from '@/lib/auth'
 import { dashboardApi, clientsApi, type DashboardData, type Client } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { format, isSameDay, addDays, getMonth, getDate } from 'date-fns'
+import { format, isSameDay, addDays, getMonth, getDate, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 function greeting(name: string) {
@@ -146,6 +146,43 @@ export default function DashboardPage() {
           </Card>
         ))}
       </motion.div>
+
+      {/* Gráfico 6 meses */}
+      {!loading && data?.monthlyRevenue && data.monthlyRevenue.some(m => m.total > 0) && (
+        <motion.div variants={item}>
+          <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide mb-3">Receita — últimos 6 meses</h2>
+          <Card className="p-4">
+            {(() => {
+              const max = Math.max(...data.monthlyRevenue.map(m => m.total), 1)
+              return (
+                <>
+                  <div className="flex items-end gap-2 h-20">
+                    {data.monthlyRevenue.map(m => {
+                      const isCurrentMonth = m.month === format(new Date(), 'yyyy-MM')
+                      return (
+                        <div key={m.month} className="flex-1 flex flex-col items-center gap-1 group">
+                          <div
+                            className={cn('w-full rounded-t-md transition-colors', isCurrentMonth ? 'bg-rose-400' : 'bg-rose-200 group-hover:bg-rose-300')}
+                            style={{ height: `${Math.max((m.total / max) * 72, m.total > 0 ? 4 : 0)}px` }}
+                            title={m.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    {data.monthlyRevenue.map(m => (
+                      <div key={m.month} className="flex-1 text-center text-[10px] text-warm-400 capitalize">
+                        {format(parseISO(m.month + '-01'), 'MMM', { locale: ptBR })}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )
+            })()}
+          </Card>
+        </motion.div>
+      )}
 
       {/* Ações rápidas */}
       <motion.div variants={item}>

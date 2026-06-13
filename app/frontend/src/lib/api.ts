@@ -97,6 +97,7 @@ export interface DashboardData {
   monthRevenue: number
   returnRate: number
   upcomingSchedules: Schedule[]
+  monthlyRevenue: { month: string; total: number }[]
 }
 
 // ─── Clients ─────────────────────────────────────────────────────────────────
