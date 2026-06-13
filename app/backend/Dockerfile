@@ -8,8 +8,10 @@ RUN npm ci
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
 COPY app/backend/ ./app/backend/
-RUN npm run build --workspace=app/backend
+WORKDIR /app/app/backend
+RUN /app/node_modules/.bin/tsc
 
 FROM node:22-alpine AS runner
 WORKDIR /app
