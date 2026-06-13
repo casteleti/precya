@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Plus, Users, Phone, Calendar, TrendingUp, MoreVertical, Loader2, MessageCircle } from 'lucide-react'
+import { Search, Plus, Users, Phone, Calendar, TrendingUp, MoreVertical, Loader2, MessageCircle, Download } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -55,6 +55,23 @@ export default function ClientesPage() {
   function openCreate() { setEditClient(null); setModalOpen(true) }
   function openEdit(c: Client) { setEditClient(c); setModalOpen(true) }
 
+  function exportCSV() {
+    const header = 'Nome,Telefone,Status,Sessões,Última sessão'
+    const rows = clients.map(c => [
+      `"${c.name}"`,
+      c.phone,
+      c.status,
+      c.sessionCount ?? 0,
+      c.lastSessionDate ? new Date(c.lastSessionDate).toLocaleDateString('pt-BR') : '',
+    ].join(','))
+    const csv = [header, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `clientes-${new Date().toISOString().slice(0,10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+  }
+
   async function handleDelete(id: string) {
     if (!confirm('Remover este cliente?')) return
     await clientsApi.delete(id)
@@ -72,9 +89,16 @@ export default function ClientesPage() {
             <h1 className="text-display text-warm-900">Clientes</h1>
             <p className="text-sm text-warm-500 mt-1">{total} cliente{total !== 1 ? 's' : ''} cadastrado{total !== 1 ? 's' : ''}</p>
           </div>
-          <Button onClick={openCreate} className="gap-2">
-            <Plus size={16} /> Novo cliente
-          </Button>
+          <div className="flex gap-2">
+            {clients.length > 0 && (
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={exportCSV}>
+                <Download size={14} /> CSV
+              </Button>
+            )}
+            <Button onClick={openCreate} className="gap-2">
+              <Plus size={16} /> Novo cliente
+            </Button>
+          </div>
         </motion.div>
 
         {/* Filters */}
