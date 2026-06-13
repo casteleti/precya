@@ -11,6 +11,7 @@ import {
   BarChart2,
   Settings,
   LogOut,
+  Search,
 } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -18,6 +19,7 @@ import { getUser, clearAuth } from '@/lib/auth'
 import type { AuthUser } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { ToastProvider } from '@/lib/toast'
+import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 const navItems = [
   { href: '/dashboard',    icon: LayoutDashboard, label: 'Início' },
@@ -35,12 +37,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter()
   const pathname = usePathname()
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   useEffect(() => {
     const u = getUser()
     if (!u) { router.push('/login'); return }
     setUser(u)
   }, [router])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(o => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   function handleLogout() {
     clearAuth()
@@ -49,6 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastProvider>
+    <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     <div className="min-h-screen bg-warm-50 flex">
 
       {/* Sidebar — desktop */}
@@ -57,7 +72,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Logo size="md" />
         </div>
 
-        <nav className="flex-1 p-4 flex flex-col gap-1">
+        {/* Busca global */}
+        <div className="px-4 pb-3">
+          <button onClick={() => setSearchOpen(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-warm-50 border border-warm-200 text-warm-400 text-sm hover:bg-warm-100 transition-calm">
+            <Search size={14} strokeWidth={1.75} />
+            <span className="flex-1 text-left text-xs">Buscar...</span>
+            <kbd className="text-[10px] font-mono bg-white border border-warm-200 px-1.5 py-0.5 rounded">⌘K</kbd>
+          </button>
+        </div>
+
+        <nav className="flex-1 p-4 pt-0 flex flex-col gap-1">
           {navItems.map(item => {
             const active = pathname?.startsWith(item.href) ?? false
             return (
