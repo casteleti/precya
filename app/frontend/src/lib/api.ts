@@ -134,3 +134,13 @@ export const schedulesApi = {
 export const dashboardApi = {
   get: () => apiFetch<DashboardData>('/api/dashboard'),
 }
+
+// ─── Clinic ──────────────────────────────────────────────────────────────────
+
+export type Clinic = { id: string; name: string; phone: string }
+
+export const clinicApi = {
+  get: () => apiFetch<Clinic>('/api/clinic'),
+  update: (data: { name?: string; phone?: string }) =>
+    apiFetch<Clinic>('/api/clinic', { method: 'PATCH', body: JSON.stringify(data) }),
+}

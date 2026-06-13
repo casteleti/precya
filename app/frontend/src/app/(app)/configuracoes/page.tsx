@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { User, LogOut, ChevronRight, Shield, Bell, HelpCircle } from 'lucide-react'
+import { User, LogOut, ChevronRight, Shield, Bell, HelpCircle, Building2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { getUser, clearAuth, type AuthUser } from '@/lib/auth'
@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { ProfileModal } from '@/components/settings/ProfileModal'
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal'
+import { ClinicModal } from '@/components/settings/ClinicModal'
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } }
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } } }
@@ -25,6 +26,7 @@ export default function ConfiguracoesPage() {
   const [user, setUser] = useState<AuthUser | null>(getUser)
   const [profileOpen, setProfileOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
+  const [clinicOpen, setClinicOpen] = useState(false)
 
   function handleLogout() {
     clearAuth()
@@ -32,6 +34,12 @@ export default function ConfiguracoesPage() {
   }
 
   const sections = [
+    {
+      title: 'Clínica',
+      items: [
+        { icon: Building2, label: 'Dados da clínica', sub: 'Nome e telefone', onClick: () => setClinicOpen(true) },
+      ],
+    },
     {
       title: 'Conta',
       items: [
@@ -115,6 +123,12 @@ export default function ConfiguracoesPage() {
       <ChangePasswordModal
         open={passwordOpen}
         onClose={() => setPasswordOpen(false)}
+      />
+
+      <ClinicModal
+        open={clinicOpen}
+        onClose={() => setClinicOpen(false)}
+        onSaved={() => {}}
       />
     </>
   )
