@@ -52,6 +52,11 @@ export default function AgendaPage() {
 
   const daySchedules = schedules.filter(s => isSameDay(parseISO(s.startTime), selectedDay))
 
+  const weekRevenue = schedules
+    .filter(s => s.status === 'completed')
+    .reduce((sum, s) => sum + Number(s.price ?? 0), 0)
+  const weekPending = schedules.filter(s => s.status === 'not_confirmed').length
+
   function whatsappUrl(phone: string, name: string) {
     const clean = phone.replace(/\D/g, '')
     const full = clean.startsWith('55') ? clean : `55${clean}`
@@ -130,6 +135,29 @@ export default function AgendaPage() {
               <ChevronRight size={16} />
             </button>
           </div>
+
+          {/* Resumo semanal */}
+          {!loading && schedules.length > 0 && (
+            <div className="flex gap-3 mb-3">
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-warm-100">
+                <Calendar size={13} className="text-warm-400" />
+                <span className="text-xs text-warm-500">{schedules.length} sessões</span>
+              </div>
+              {weekRevenue > 0 && (
+                <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-warm-100">
+                  <span className="text-xs text-sage-600 font-medium">
+                    {weekRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                </div>
+              )}
+              {weekPending > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-xs text-amber-600 font-medium">{weekPending} a confirmar</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Day pills */}
           <div className="grid grid-cols-7 gap-1">
