@@ -3,16 +3,37 @@ import healthRoute from './routes/health'
 import authRoute from './routes/auth'
 import apiRoute from './routes/api'
 
-const app = Fastify({ logger: true })
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err)
+  process.exit(1)
+})
 
-app.register(healthRoute)
-app.register(authRoute)
-app.register(apiRoute)
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason)
+  process.exit(1)
+})
 
-const port = parseInt(process.env.PORT || '5003', 10)
-app.listen({ port, host: '0.0.0.0' }, (err) => {
-  if (err) {
-    app.log.error(err)
+async function start() {
+  const app = Fastify({ logger: true })
+
+  try {
+    app.register(healthRoute)
+    app.register(authRoute)
+    app.register(apiRoute)
+  } catch (err) {
+    console.error('ERROR REGISTERING ROUTES:', err)
     process.exit(1)
   }
-})
+
+  const port = parseInt(process.env.PORT || '5003', 10)
+
+  try {
+    await app.listen({ port, host: '0.0.0.0' })
+    app.log.info(`Server running on port ${port}`)
+  } catch (err) {
+    app.log.error({ err }, 'ERROR STARTING SERVER')
+    process.exit(1)
+  }
+}
+
+start()
