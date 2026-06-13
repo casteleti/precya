@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock, MessageCircle, FileText, ChevronDown, ChevronUp, Check, X } from 'lucide-react'
+import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock, MessageCircle, FileText, ChevronDown, ChevronUp, Check, X, Pencil } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ClientModal } from '@/components/clients/ClientModal'
@@ -50,6 +50,19 @@ export default function ClientDetailPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [editNoteId, setEditNoteId] = useState<string | null>(null)
   const [noteText, setNoteText]     = useState('')
+  const [editingGenNote, setEditingGenNote] = useState(false)
+  const [genNoteText, setGenNoteText]       = useState('')
+
+  async function handleSaveGenNote() {
+    try {
+      const updated = await clientsApi.update(client!.id, { notes: genNoteText })
+      setClient(prev => prev ? { ...prev, notes: updated.notes } : prev)
+      toast('Anotações salvas.')
+      setEditingGenNote(false)
+    } catch {
+      toast('Erro ao salvar.', 'error')
+    }
+  }
 
   async function handleSaveNote(id: string) {
     try {
@@ -161,6 +174,50 @@ export default function ClientDetailPage() {
                 </div>
               ))}
             </div>
+          </Card>
+        </motion.div>
+
+        {/* Notas gerais do cliente */}
+        <motion.div variants={item}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide">Anotações gerais</h2>
+            {!editingGenNote && (
+              <button onClick={() => { setGenNoteText(client.notes ?? ''); setEditingGenNote(true) }}
+                className="flex items-center gap-1 text-xs text-warm-400 hover:text-warm-600 transition-calm">
+                <Pencil size={11} /> {client.notes ? 'Editar' : 'Adicionar'}
+              </button>
+            )}
+          </div>
+          <Card className="p-4">
+            {editingGenNote ? (
+              <div className="flex flex-col gap-2">
+                <textarea
+                  autoFocus rows={4}
+                  value={genNoteText}
+                  onChange={e => setGenNoteText(e.target.value)}
+                  placeholder="Histórico, diagnóstico, medicamentos, observações relevantes..."
+                  className="w-full text-sm px-3 py-2 rounded-lg border border-warm-200 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-100 resize-none text-warm-700"
+                />
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => setEditingGenNote(false)}
+                    className="px-3 py-1.5 rounded-lg bg-warm-100 text-warm-500 text-xs hover:bg-warm-200 transition-calm">
+                    Cancelar
+                  </button>
+                  <button onClick={handleSaveGenNote}
+                    className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-medium hover:bg-rose-600 transition-calm">
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            ) : client.notes ? (
+              <p className="text-sm text-warm-700 whitespace-pre-wrap leading-relaxed">{client.notes}</p>
+            ) : (
+              <button onClick={() => { setGenNoteText(''); setEditingGenNote(true) }}
+                className="w-full flex items-center gap-2 text-sm text-warm-300 hover:text-warm-400 transition-calm group">
+                <FileText size={14} strokeWidth={1.5} />
+                <span className="text-xs">Adicionar anotações sobre este cliente...</span>
+              </button>
+            )}
           </Card>
         </motion.div>
 

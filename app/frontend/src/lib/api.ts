@@ -76,6 +76,7 @@ export interface Client {
   sessionCount: number
   lifetimeValue: string
   createdAt: string
+  notes: string | null
 }
 
 export interface Schedule {

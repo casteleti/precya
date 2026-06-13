@@ -26,7 +26,7 @@ export default async function clientsRoute(app: FastifyInstance) {
         select: {
           id: true, name: true, phone: true, status: true,
           birthDate: true, lastSessionDate: true, sessionCount: true,
-          lifetimeValue: true, createdAt: true,
+          lifetimeValue: true, createdAt: true, notes: true,
         },
       }),
       prisma.client.count({ where }),
@@ -80,7 +80,7 @@ export default async function clientsRoute(app: FastifyInstance) {
   app.put('/api/clients/:id', { preHandler: verifyToken }, async (req, reply) => {
     const r = req as AuthReq
     const { id } = req.params as { id: string }
-    const body = req.body as { name?: string; phone?: string; birthDate?: string; status?: string }
+    const body = req.body as { name?: string; phone?: string; birthDate?: string; status?: string; notes?: string }
 
     const client = await prisma.client.findFirst({ where: { id, clinicId: r.clinicId } })
     if (!client) return reply.code(404).send({ error: 'Cliente não encontrado.' })
@@ -91,6 +91,7 @@ export default async function clientsRoute(app: FastifyInstance) {
         ...(body.name && { name: body.name }),
         ...(body.phone && { phone: body.phone }),
         ...(body.status && { status: body.status }),
+        ...(body.notes !== undefined && { notes: body.notes }),
         ...(body.birthDate !== undefined && {
           birthDate: body.birthDate ? new Date(body.birthDate) : null,
         }),

@@ -24,4 +24,4 @@ COPY app/backend/package.json ./
 COPY app/backend/prisma ./prisma
 RUN ./node_modules/.bin/prisma generate --schema ./prisma/schema.prisma
 EXPOSE 3000
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --schema ./prisma/schema.prisma --skip-generate --accept-data-loss && node dist/server.js"]
