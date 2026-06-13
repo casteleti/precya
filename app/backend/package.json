@@ -12,7 +12,11 @@
     "test:coverage": "vitest run --coverage",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "seed": "ts-node-dev --transpile-only prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "npx ts-node-dev --transpile-only prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
