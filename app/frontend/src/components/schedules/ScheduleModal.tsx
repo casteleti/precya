@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2, Search } from 'lucide-react'
+import { X, Loader2, Search, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { schedulesApi, clientsApi, type Schedule, type Client } from '@/lib/api'
-import { format } from 'date-fns'
+import { format, addWeeks } from 'date-fns'
 import { useToast } from '@/lib/toast'
 
 interface Props {
@@ -26,6 +26,8 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
   const [endTime, setEndTime] = useState('10:00')
   const [price, setPrice] = useState('')
   const [notes, setNotes] = useState('')
+  const [recurring, setRecurring] = useState(false)
+  const [repeatWeeks, setRepeatWeeks] = useState(4)
   const [loading, setLoading] = useState(false)
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
@@ -43,6 +45,7 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
       setStartTime('09:00'); setEndTime('10:00'); setPrice(''); setNotes('')
     }
     setSelectedClient(null); setClientSearch(''); setError('')
+    setRecurring(false); setRepeatWeeks(4)
   }, [open, schedule, defaultDate])
 
   useEffect(() => {
@@ -80,15 +83,22 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
           price: price ? Number(price) : undefined,
           notes: notes || undefined,
         })
+        toast('Agendamento atualizado.')
       } else {
-        await schedulesApi.create({
-          clientId: selectedClient!.id,
-          startTime: startISO, endTime: endISO,
-          price: price ? Number(price) : undefined,
-          notes: notes || undefined,
-        })
+        const baseStart = new Date(startISO)
+        const baseEnd   = new Date(endISO)
+        const weeks = recurring ? repeatWeeks : 1
+        await Promise.all(
+          Array.from({ length: weeks }, (_, i) => schedulesApi.create({
+            clientId: selectedClient!.id,
+            startTime: addWeeks(baseStart, i).toISOString(),
+            endTime:   addWeeks(baseEnd,   i).toISOString(),
+            price: price ? Number(price) : undefined,
+            notes: notes || undefined,
+          }))
+        )
+        toast(weeks > 1 ? `${weeks} sessões criadas.` : 'Agendamento criado.')
       }
-      toast(schedule ? 'Agendamento atualizado.' : 'Agendamento criado.')
       onSaved(); onClose()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao salvar.'
@@ -174,12 +184,36 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
             <Input placeholder="Anotações sobre a sessão..." value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
 
+          {/* Recorrência — só na criação */}
+          {!schedule && (
+            <div className="flex flex-col gap-2 pt-1 border-t border-warm-100">
+              <button type="button" onClick={() => setRecurring(r => !r)}
+                className={`flex items-center gap-2 text-xs font-medium transition-calm w-fit px-3 py-1.5 rounded-lg ${recurring ? 'bg-rose-50 text-rose-600' : 'text-warm-500 hover:text-warm-700 hover:bg-warm-50'}`}>
+                <RefreshCw size={13} /> Repetir semanalmente
+              </button>
+              {recurring && (
+                <div className="flex items-center gap-3">
+                  <label className="text-xs text-warm-500">Repetir por</label>
+                  <div className="flex gap-1">
+                    {[2, 4, 8, 12].map(w => (
+                      <button key={w} type="button" onClick={() => setRepeatWeeks(w)}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-calm ${repeatWeeks === w ? 'bg-rose-500 text-white' : 'bg-warm-100 text-warm-600 hover:bg-warm-200'}`}>
+                        {w}×
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-xs text-warm-400">{repeatWeeks} semanas</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {error && <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
             <Button type="submit" className="flex-1" disabled={loading}>
-              {loading ? <Loader2 size={16} className="animate-spin" /> : schedule ? 'Salvar' : 'Criar'}
+              {loading ? <Loader2 size={16} className="animate-spin" /> : schedule ? 'Salvar' : recurring ? `Criar ${repeatWeeks} sessões` : 'Criar'}
             </Button>
           </div>
         </form>
