@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY app/backend/package.json ./app/backend/package.json
 COPY app/frontend/package.json ./app/frontend/package.json
-RUN npm ci
+RUN NODE_ENV=development npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
