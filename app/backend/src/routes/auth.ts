@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { verifyToken } from '../middleware/auth'
@@ -40,7 +40,7 @@ export default async function authRoute(app: FastifyInstance) {
 
       const passwordHash = await bcrypt.hash(password, 10)
 
-      const user = await prisma.$transaction(async (tx) => {
+      const user = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const clinic = await tx.clinic.create({
           data: { name: clinicName, phone: clinicPhone },
         })
