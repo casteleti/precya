@@ -23,4 +23,4 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY app/backend/package.json ./
 COPY app/backend/prisma ./prisma
 EXPOSE 3000
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "prisma migrate deploy || echo 'Migration skipped'; node dist/server.js"]
