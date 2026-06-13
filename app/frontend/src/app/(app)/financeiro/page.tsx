@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { DollarSign, TrendingUp, Calendar, CheckCircle, Loader2, Printer, Target, Pencil } from 'lucide-react'
+import { DollarSign, TrendingUp, Calendar, CheckCircle, Loader2, Printer, Target, Pencil, FileText } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 import { schedulesApi, type Schedule } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { format, startOfMonth, endOfMonth, subMonths, getDate, getDaysInMonth } from 'date-fns'
@@ -20,6 +21,7 @@ function fmtCurrency(value: number) {
 const GOAL_KEY = 'precya_monthly_goal'
 
 export default function FinanceiroPage() {
+  const router = useRouter()
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(new Date())
@@ -87,10 +89,16 @@ export default function FinanceiroPage() {
           <h1 className="text-display text-warm-900">Financeiro</h1>
           <p className="text-sm text-warm-500 mt-1">Acompanhe o faturamento da sua clínica</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-1.5 shrink-0 print:hidden"
-          onClick={() => window.print()}>
-          <Printer size={14} /> Imprimir
-        </Button>
+        <div className="flex gap-2 shrink-0 print:hidden">
+          <Button variant="outline" size="sm" className="gap-1.5"
+            onClick={() => router.push('/relatorio')}>
+            <FileText size={14} /> Relatório
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5"
+            onClick={() => window.print()}>
+            <Printer size={14} /> Imprimir
+          </Button>
+        </div>
       </motion.div>
 
       {/* Month selector */}
