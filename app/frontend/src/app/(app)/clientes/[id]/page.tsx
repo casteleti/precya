@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock, MessageCircle } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock, MessageCircle, FileText, ChevronDown, ChevronUp, Check, X } from 'lucide-react'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ClientModal } from '@/components/clients/ClientModal'
 import { clientsApi, schedulesApi, type Client, type Schedule } from '@/lib/api'
+import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -41,10 +42,25 @@ export default function ClientDetailPage() {
   const id = params?.id as string
   const router  = useRouter()
 
+  const { toast } = useToast()
   const [client, setClient]       = useState<Client | null>(null)
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading]     = useState(true)
   const [editOpen, setEditOpen]   = useState(false)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [editNoteId, setEditNoteId] = useState<string | null>(null)
+  const [noteText, setNoteText]     = useState('')
+
+  async function handleSaveNote(id: string) {
+    try {
+      await schedulesApi.patch(id, { notes: noteText })
+      toast('Nota salva.')
+      setEditNoteId(null)
+      load()
+    } catch {
+      toast('Erro ao salvar nota.', 'error')
+    }
+  }
 
   async function load() {
     try {
@@ -182,10 +198,10 @@ export default function ClientDetailPage() {
           </motion.div>
         )}
 
-        {/* History */}
+        {/* History / Prontuário */}
         <motion.div variants={item}>
           <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide mb-3">
-            Histórico de sessões ({completed.length})
+            Prontuário ({completed.length} sessões)
           </h2>
           {completed.length === 0 ? (
             <Card className="flex flex-col items-center justify-center py-10 text-center">
@@ -194,26 +210,73 @@ export default function ClientDetailPage() {
             </Card>
           ) : (
             <Card className="divide-y divide-warm-100">
-              {[...completed].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()).map(s => (
-                <div key={s.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-8 h-8 rounded-full bg-warm-100 flex items-center justify-center shrink-0">
-                    <span className="text-xs text-warm-500">✓</span>
+              {[...completed].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()).map(s => {
+                const isExpanded = expandedId === s.id
+                const isEditing  = editNoteId === s.id
+                return (
+                  <div key={s.id}>
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : s.id)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-warm-50 transition-calm text-left">
+                      <div className="w-8 h-8 rounded-full bg-sage-50 flex items-center justify-center shrink-0">
+                        <Check size={13} className="text-sage-500" strokeWidth={2.5} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-warm-900">
+                          {format(new Date(s.startTime), "dd 'de' MMM 'de' yyyy", { locale: ptBR })}
+                        </p>
+                        <p className="text-xs text-warm-400">
+                          {format(new Date(s.startTime), 'HH:mm')} – {format(new Date(s.endTime), 'HH:mm')}
+                          {s.notes ? <span className="ml-2 text-warm-300">· tem anotação</span> : null}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {s.price && <span className="text-sm font-semibold text-sage-600">{fmtCurrency(Number(s.price))}</span>}
+                        {isExpanded ? <ChevronUp size={14} className="text-warm-400" /> : <ChevronDown size={14} className="text-warm-300" />}
+                      </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="px-4 pb-4 bg-warm-50/50">
+                        {isEditing ? (
+                          <div className="flex gap-2">
+                            <textarea
+                              autoFocus
+                              rows={3}
+                              value={noteText}
+                              onChange={e => setNoteText(e.target.value)}
+                              placeholder="Anotações clínicas desta sessão..."
+                              className="flex-1 text-xs px-3 py-2 rounded-lg border border-warm-200 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-100 resize-none bg-white"
+                            />
+                            <div className="flex flex-col gap-1">
+                              <button onClick={() => handleSaveNote(s.id)}
+                                className="p-2 rounded-lg bg-rose-500 text-white hover:bg-rose-600 transition-calm">
+                                <Check size={13} />
+                              </button>
+                              <button onClick={() => setEditNoteId(null)}
+                                className="p-2 rounded-lg bg-warm-100 text-warm-500 hover:bg-warm-200 transition-calm">
+                                <X size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => { setEditNoteId(s.id); setNoteText(s.notes ?? '') }}
+                            className="min-h-[48px] px-3 py-2.5 rounded-lg border border-dashed border-warm-200 bg-white cursor-text hover:border-rose-200 transition-calm group">
+                            {s.notes ? (
+                              <p className="text-xs text-warm-700 whitespace-pre-wrap leading-relaxed">{s.notes}</p>
+                            ) : (
+                              <p className="text-xs text-warm-300 group-hover:text-warm-400 flex items-center gap-1.5">
+                                <FileText size={12} /> Clique para adicionar anotações clínicas...
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-warm-900">
-                      {format(new Date(s.startTime), "dd 'de' MMM", { locale: ptBR })}
-                    </p>
-                    <p className="text-xs text-warm-400">
-                      {format(new Date(s.startTime), 'HH:mm')} – {format(new Date(s.endTime), 'HH:mm')}
-                    </p>
-                  </div>
-                  {s.price && (
-                    <span className="text-sm font-semibold text-sage-600 shrink-0">
-                      {fmtCurrency(Number(s.price))}
-                    </span>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </Card>
           )}
         </motion.div>
