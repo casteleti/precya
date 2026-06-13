@@ -1,4 +1,5 @@
 import Fastify from 'fastify'
+import cors from '@fastify/cors'
 import healthRoute from './routes/health'
 import authRoute from './routes/auth'
 import apiRoute from './routes/api'
@@ -17,6 +18,7 @@ async function start() {
   const app = Fastify({ logger: true })
 
   try {
+    app.register(cors, { origin: true })
     app.register(healthRoute)
     app.register(authRoute)
     app.register(apiRoute)
