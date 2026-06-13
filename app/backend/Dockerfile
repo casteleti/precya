@@ -9,8 +9,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY app/backend/ ./app/backend/
-WORKDIR /app/app/backend
-RUN npm run build
+RUN npm run build --workspace=app/backend
 
 FROM node:22-alpine AS runner
 WORKDIR /app

@@ -9,9 +9,8 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY app/frontend/ ./app/frontend/
-WORKDIR /app/app/frontend
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN npm run build --workspace=app/frontend
 
 FROM node:22-alpine AS runner
 WORKDIR /app
