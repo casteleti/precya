@@ -108,6 +108,19 @@ export default function ClientDetailPage() {
   const upcoming   = schedules.filter(s => s.status !== 'completed' && s.status !== 'cancelled' && new Date(s.startTime) >= new Date())
   const totalSpent = completed.reduce((sum, s) => sum + Number(s.price ?? 0), 0)
 
+  // Sessions per month (last 6 months)
+  const activityMonths = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - (5 - i))
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const count = completed.filter(s => {
+      const sd = new Date(s.startTime)
+      return `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(2, '0')}` === key
+    }).length
+    return { key, count, month: format(d, 'MMM', { locale: ptBR }) }
+  })
+  const maxActivity = Math.max(...activityMonths.map(m => m.count), 1)
+
   return (
     <>
       <motion.div variants={container} initial="hidden" animate="show"
@@ -162,6 +175,29 @@ export default function ClientDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Activity mini chart */}
+            {completed.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-warm-100">
+                <p className="text-[10px] text-warm-400 uppercase tracking-wide mb-2">Sessões — últimos 6 meses</p>
+                <div className="flex items-end gap-1.5 h-10">
+                  {activityMonths.map(m => (
+                    <div key={m.key} className="flex-1 flex flex-col items-center gap-1 group">
+                      <div
+                        className="w-full rounded-t-sm bg-rose-200 group-hover:bg-rose-400 transition-colors"
+                        style={{ height: `${Math.max((m.count / maxActivity) * 32, m.count > 0 ? 4 : 0)}px` }}
+                        title={`${m.month}: ${m.count} sessão(ões)`}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-1.5 mt-1">
+                  {activityMonths.map(m => (
+                    <div key={m.key} className="flex-1 text-center text-[9px] text-warm-300 capitalize">{m.month}</div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-warm-100">
