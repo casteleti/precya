@@ -145,3 +145,23 @@ export const clinicApi = {
   update: (data: { name?: string; phone?: string }) =>
     apiFetch<Clinic>('/api/clinic', { method: 'PATCH', body: JSON.stringify(data) }),
 }
+
+// ─── Anamnesis ────────────────────────────────────────────────────────────────
+
+export type AnamnesisResponse = {
+  id: string
+  clientId: string
+  responses: Record<string, string>
+  createdAt: string
+  updatedAt: string
+} | null
+
+export const anamnesisApi = {
+  get: (clientId: string) =>
+    apiFetch<AnamnesisResponse>(`/api/clients/${clientId}/anamnesis`),
+  save: (clientId: string, responses: Record<string, string>) =>
+    apiFetch<AnamnesisResponse>(`/api/clients/${clientId}/anamnesis`, {
+      method: 'POST',
+      body: JSON.stringify({ responses }),
+    }),
+}

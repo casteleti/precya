@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock, MessageCircle, FileText, ChevronDown, ChevronUp, Check, X, Pencil } from 'lucide-react'
+import { ArrowLeft, Phone, Calendar, TrendingUp, DollarSign, Edit2, Loader2, Clock, MessageCircle, FileText, ChevronDown, ChevronUp, Check, X, Pencil, ClipboardList } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ClientModal } from '@/components/clients/ClientModal'
+import { AnamnesisModal } from '@/components/clients/AnamnesisModal'
 import { clientsApi, schedulesApi, type Client, type Schedule } from '@/lib/api'
 import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
@@ -46,7 +47,8 @@ export default function ClientDetailPage() {
   const [client, setClient]       = useState<Client | null>(null)
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading]     = useState(true)
-  const [editOpen, setEditOpen]   = useState(false)
+  const [editOpen, setEditOpen]       = useState(false)
+  const [anamnesisOpen, setAnamnesisOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [editNoteId, setEditNoteId] = useState<string | null>(null)
   const [noteText, setNoteText]     = useState('')
@@ -118,6 +120,9 @@ export default function ClientDetailPage() {
             <ArrowLeft size={20} />
           </button>
           <h1 className="text-display text-warm-900 flex-1">Detalhes do cliente</h1>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setAnamnesisOpen(true)}>
+            <ClipboardList size={14} /> Anamnese
+          </Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditOpen(true)}>
             <Edit2 size={14} /> Editar
           </Button>
@@ -344,6 +349,13 @@ export default function ClientDetailPage() {
         client={client}
         onClose={() => setEditOpen(false)}
         onSaved={() => { setEditOpen(false); load() }}
+      />
+
+      <AnamnesisModal
+        open={anamnesisOpen}
+        clientId={client.id}
+        clientName={client.name}
+        onClose={() => setAnamnesisOpen(false)}
       />
     </>
   )
