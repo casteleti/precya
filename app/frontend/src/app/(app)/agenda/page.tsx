@@ -35,6 +35,7 @@ export default function AgendaPage() {
   const [actionId, setActionId] = useState<string | null>(null)
   const [noteId, setNoteId] = useState<string | null>(null)
   const [noteText, setNoteText] = useState('')
+  const [filterStatus, setFilterStatus] = useState<string>('')
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -52,7 +53,9 @@ export default function AgendaPage() {
 
   useEffect(() => { load() }, [load])
 
-  const daySchedules = schedules.filter(s => isSameDay(parseISO(s.startTime), selectedDay))
+  const daySchedules = schedules
+    .filter(s => isSameDay(parseISO(s.startTime), selectedDay))
+    .filter(s => filterStatus ? s.status === filterStatus : true)
 
   const weekRevenue = schedules
     .filter(s => s.status === 'completed')
@@ -186,9 +189,25 @@ export default function AgendaPage() {
 
         {/* Day schedule */}
         <motion.div variants={item}>
-          <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide mb-3">
-            {format(selectedDay, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide">
+              {format(selectedDay, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </h2>
+            <div className="flex gap-1">
+              {[
+                { value: '', label: 'Todas' },
+                { value: 'not_confirmed', label: 'A confirmar' },
+                { value: 'confirmed', label: 'Confirmadas' },
+                { value: 'completed', label: 'Concluídas' },
+              ].map(f => (
+                <button key={f.value} onClick={() => setFilterStatus(f.value)}
+                  className={cn('px-2 py-1 rounded-lg text-[10px] font-medium transition-calm',
+                    filterStatus === f.value ? 'bg-rose-100 text-rose-600' : 'text-warm-400 hover:bg-warm-100')}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {loading ? (
             <div className="flex justify-center py-12">
