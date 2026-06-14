@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Plus, Users, Phone, Calendar, TrendingUp, MoreVertical, Loader2, MessageCircle, Download } from 'lucide-react'
+import { Search, Plus, Users, Phone, Calendar, TrendingUp, MoreVertical, Loader2, MessageCircle, Download, RefreshCw } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { clientsApi, type Client } from '@/lib/api'
+import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -25,6 +26,7 @@ const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transiti
 
 export default function ClientesPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [clients, setClients] = useState<Client[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -95,6 +97,15 @@ export default function ClientesPage() {
                 <Download size={14} /> CSV
               </Button>
             )}
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => {
+              try {
+                const r = await clientsApi.autoStatus()
+                if (r.total > 0) { toast(`${r.total} status atualizados automaticamente.`); load() }
+                else toast('Nenhum status precisava de atualização.')
+              } catch { toast('Erro ao atualizar status.', 'error') }
+            }}>
+              <RefreshCw size={14} /> Status auto
+            </Button>
             <Button onClick={openCreate} className="gap-2">
               <Plus size={16} /> Novo cliente
             </Button>

@@ -50,7 +50,7 @@ export default async function schedulesRoute(app: FastifyInstance) {
     const r = req as AuthReq
     const body = req.body as {
       clientId: string; startTime: string; endTime: string;
-      price?: number; notes?: string; status?: string
+      price?: number; notes?: string; status?: string; protocolId?: string
     }
 
     const client = await prisma.client.findFirst({
@@ -68,6 +68,7 @@ export default async function schedulesRoute(app: FastifyInstance) {
         notes: body.notes ?? null,
         status: body.status ?? 'not_confirmed',
         confirmToken: randomUUID(),
+        ...(body.protocolId && { protocolId: body.protocolId }),
       },
       include: { client: { select: { id: true, name: true, phone: true } } },
     })

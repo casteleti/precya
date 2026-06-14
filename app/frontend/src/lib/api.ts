@@ -114,6 +114,7 @@ export const clientsApi = {
   update: (id: string, data: Partial<Client>) =>
     apiFetch<Client>(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: string) => apiFetch<void>(`/api/clients/${id}`, { method: 'DELETE' }),
+  autoStatus: () => apiFetch<{ toRisk: number; toInactive: number; total: number }>('/api/clients/auto-status', { method: 'POST' }),
 }
 
 // ─── Schedules ───────────────────────────────────────────────────────────────
@@ -126,7 +127,7 @@ export const schedulesApi = {
   get: (id: string) => apiFetch<Schedule>(`/api/schedules/${id}`),
   create: (data: {
     clientId: string; startTime: string; endTime: string;
-    price?: number; notes?: string
+    price?: number; notes?: string; protocolId?: string
   }) => apiFetch<Schedule>('/api/schedules', { method: 'POST', body: JSON.stringify(data) }),
   patch: (id: string, data: Partial<{ status: string; notes: string; price: number; startTime: string; endTime: string }>) =>
     apiFetch<Schedule>(`/api/schedules/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),

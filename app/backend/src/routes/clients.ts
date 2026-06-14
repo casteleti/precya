@@ -100,6 +100,43 @@ export default async function clientsRoute(app: FastifyInstance) {
     return updated
   })
 
+  // Auto-update client status based on inactivity
+  app.post('/api/clients/auto-status', { preHandler: verifyToken }, async (req, reply) => {
+    const r = req as AuthReq
+    const now = new Date()
+    const day30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const day60 = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+
+    // Only update clients not manually set — we update ativo→risco and risco→inativo
+    // Clients with lastSessionDate null and sessionCount 0 remain ativo (new clients)
+    const [toRisk, toInactive] = await Promise.all([
+      // Active clients with last session > 30 days ago
+      prisma.client.updateMany({
+        where: {
+          clinicId: r.clinicId,
+          status: 'ativo',
+          lastSessionDate: { lt: day30, not: null },
+        },
+        data: { status: 'risco' },
+      }),
+      // At-risk clients with last session > 60 days ago
+      prisma.client.updateMany({
+        where: {
+          clinicId: r.clinicId,
+          status: 'risco',
+          lastSessionDate: { lt: day60 },
+        },
+        data: { status: 'inativo' },
+      }),
+    ])
+
+    return reply.send({
+      toRisk: toRisk.count,
+      toInactive: toInactive.count,
+      total: toRisk.count + toInactive.count,
+    })
+  })
+
   // Delete client
   app.delete('/api/clients/:id', { preHandler: verifyToken }, async (req, reply) => {
     const r = req as AuthReq

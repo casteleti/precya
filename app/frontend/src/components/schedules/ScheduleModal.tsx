@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Loader2, Search, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { schedulesApi, clientsApi, type Schedule, type Client } from '@/lib/api'
+import { schedulesApi, clientsApi, protocolsApi, type Schedule, type Client, type Protocol } from '@/lib/api'
 import { format, addWeeks } from 'date-fns'
 import { useToast } from '@/lib/toast'
 
@@ -28,6 +28,8 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
   const [notes, setNotes] = useState('')
   const [recurring, setRecurring] = useState(false)
   const [repeatWeeks, setRepeatWeeks] = useState(4)
+  const [protocols, setProtocols] = useState<Protocol[]>([])
+  const [protocolId, setProtocolId] = useState('')
   const [loading, setLoading] = useState(false)
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
@@ -45,7 +47,8 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
       setStartTime('09:00'); setEndTime('10:00'); setPrice(''); setNotes('')
     }
     setSelectedClient(null); setClientSearch(''); setError('')
-    setRecurring(false); setRepeatWeeks(4)
+    setRecurring(false); setRepeatWeeks(4); setProtocolId('')
+    protocolsApi.list().then(setProtocols).catch(() => {})
   }, [open, schedule, defaultDate])
 
   useEffect(() => {
@@ -95,6 +98,7 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
             endTime:   addWeeks(baseEnd,   i).toISOString(),
             price: price ? Number(price) : undefined,
             notes: notes || undefined,
+            protocolId: protocolId || undefined,
           }))
         )
         toast(weeks > 1 ? `${weeks} sessões criadas.` : 'Agendamento criado.')
@@ -183,6 +187,23 @@ export function ScheduleModal({ open, schedule, defaultDate, onClose, onSaved }:
             <label className="text-xs font-medium text-warm-700">Observações</label>
             <Input placeholder="Anotações sobre a sessão..." value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
+
+          {/* Protocolo */}
+          {protocols.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-warm-700">Protocolo</label>
+              <select
+                value={protocolId}
+                onChange={e => setProtocolId(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-warm-200 text-sm text-warm-900 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-100 bg-white"
+              >
+                <option value="">Nenhum</option>
+                {protocols.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Recorrência — só na criação */}
           {!schedule && (
