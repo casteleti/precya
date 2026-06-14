@@ -21,6 +21,7 @@ import type { AuthUser } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { ToastProvider } from '@/lib/toast'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
+import { ShortcutsModal } from '@/components/shortcuts/ShortcutsModal'
 import { schedulesApi } from '@/lib/api'
 import { isSameDay } from 'date-fns'
 
@@ -42,6 +43,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [pendingToday, setPendingToday] = useState(0)
 
   useEffect(() => {
@@ -65,6 +67,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         e.preventDefault()
         setSearchOpen(o => !o)
       }
+      if (e.key === '?' && !(e.target as HTMLElement).matches('input,textarea')) {
+        setShortcutsOpen(o => !o)
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -78,6 +83,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ToastProvider>
     <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+    <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     <div className="min-h-screen bg-warm-50 flex">
 
       {/* Sidebar — desktop */}
