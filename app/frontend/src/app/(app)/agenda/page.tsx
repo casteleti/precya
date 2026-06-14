@@ -59,6 +59,12 @@ export default function AgendaPage() {
     .filter(s => isSameDay(parseISO(s.startTime), selectedDay))
     .filter(s => filterStatus ? s.status === filterStatus : true)
 
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30000)
+    return () => clearInterval(t)
+  }, [])
+
   const weekRevenue = schedules
     .filter(s => s.status === 'completed')
     .reduce((sum, s) => sum + Number(s.price ?? 0), 0)
@@ -246,8 +252,19 @@ export default function AgendaPage() {
                   const cfg = statusConfig[s.status] ?? statusConfig.not_confirmed
                   const isActive = actionId === s.id
                   const isDone = s.status === 'completed' || s.status === 'cancelled'
+                  const sessionStart = parseISO(s.startTime)
+                  const sessionEnd   = parseISO(s.endTime)
+                  const isOngoing = now >= sessionStart && now <= sessionEnd && !isDone
+                  const progressPct = isOngoing
+                    ? Math.round(((now.getTime() - sessionStart.getTime()) / (sessionEnd.getTime() - sessionStart.getTime())) * 100)
+                    : 0
                   return (
                     <div key={s.id}>
+                      {isOngoing && (
+                        <div className="h-0.5 bg-warm-100">
+                          <div className="h-full bg-rose-400 transition-all duration-1000" style={{ width: `${progressPct}%` }} />
+                        </div>
+                      )}
                       <div className="flex items-center gap-4 px-4 py-3.5">
                         <div className="flex flex-col items-center w-14 shrink-0">
                           <span className="text-sm font-bold text-warm-900">
