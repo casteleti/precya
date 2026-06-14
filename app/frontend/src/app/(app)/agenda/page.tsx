@@ -36,6 +36,8 @@ export default function AgendaPage() {
   const [noteId, setNoteId] = useState<string | null>(null)
   const [noteText, setNoteText] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('')
+  const [editPriceId, setEditPriceId] = useState<string | null>(null)
+  const [priceInput, setPriceInput] = useState('')
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -91,6 +93,19 @@ export default function AgendaPage() {
     }
     setActionId(null)
     load()
+  }
+
+  async function handleSavePrice(id: string) {
+    const price = Number(priceInput.replace(',', '.'))
+    if (isNaN(price) || price < 0) return
+    try {
+      await schedulesApi.patch(id, { price })
+      toast('Valor atualizado.')
+      load()
+    } catch {
+      toast('Erro ao atualizar valor.', 'error')
+    }
+    setEditPriceId(null)
   }
 
   async function handleDelete(id: string) {
@@ -277,6 +292,26 @@ export default function AgendaPage() {
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warm-100 text-warm-700 text-xs font-medium hover:bg-warm-200 transition-calm">
                               <Edit2 size={12} /> Editar
                             </button>
+                            {editPriceId === s.id ? (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-warm-400">R$</span>
+                                <input autoFocus type="number" min="0" step="0.01"
+                                  value={priceInput}
+                                  onChange={e => setPriceInput(e.target.value)}
+                                  onKeyDown={e => { if (e.key === 'Enter') handleSavePrice(s.id); if (e.key === 'Escape') setEditPriceId(null) }}
+                                  className="w-20 text-xs px-2 py-1 rounded-lg border border-warm-200 focus:outline-none focus:border-rose-300"
+                                />
+                                <button onClick={() => handleSavePrice(s.id)}
+                                  className="px-2 py-1 rounded-lg bg-rose-500 text-white text-xs hover:bg-rose-600 transition-calm">✓</button>
+                                <button onClick={() => setEditPriceId(null)}
+                                  className="px-2 py-1 rounded-lg bg-warm-100 text-warm-500 text-xs hover:bg-warm-200 transition-calm">✕</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => { setEditPriceId(s.id); setPriceInput(s.price ? String(Number(s.price)) : '') }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warm-100 text-warm-700 text-xs font-medium hover:bg-warm-200 transition-calm">
+                                R$ {s.price ? Number(s.price).toFixed(0) : '—'}
+                              </button>
+                            )}
                             <a href={whatsappUrl(s.client.phone, s.client.name)} target="_blank" rel="noopener noreferrer"
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-600 text-xs font-medium hover:bg-green-100 transition-calm">
                               <MessageCircle size={12} /> WhatsApp
