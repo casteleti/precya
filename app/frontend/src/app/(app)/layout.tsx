@@ -168,28 +168,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Bottom nav — mobile */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-warm-200 z-30">
-          <div className="flex items-center justify-around px-2 py-2">
-            {navItems.slice(0, 4).map(item => {
+        <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-warm-200 z-30 safe-bottom">
+          <div className="flex items-center overflow-x-auto scrollbar-none px-1 py-1.5 gap-0.5">
+            {navItems.map(item => {
               const active = pathname?.startsWith(item.href) ?? false
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-calm min-w-[44px] min-h-[44px] justify-center',
+                    'flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg transition-calm min-w-[52px] shrink-0 justify-center',
                     active ? 'text-rose-500' : 'text-warm-400'
                   )}
                 >
                   <div className="relative">
-                    <item.icon size={20} strokeWidth={active ? 2 : 1.75} />
+                    <item.icon size={19} strokeWidth={active ? 2 : 1.75} />
                     {item.href === '/agenda' && pendingToday > 0 && (
                       <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-white text-[9px] font-bold flex items-center justify-center">
                         {pendingToday}
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] font-medium">{item.label}</span>
+                  <span className="text-[9px] font-medium leading-tight">{item.label}</span>
                 </Link>
               )
             })}

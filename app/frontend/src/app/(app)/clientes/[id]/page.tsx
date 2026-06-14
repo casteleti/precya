@@ -127,17 +127,17 @@ export default function ClientDetailPage() {
         className="flex flex-col gap-6 pb-24 md:pb-0 max-w-2xl">
 
         {/* Back + header */}
-        <motion.div variants={item} className="flex items-center gap-3">
+        <motion.div variants={item} className="flex items-center gap-2">
           <button onClick={() => router.back()}
-            className="text-warm-400 hover:text-warm-700 transition-calm p-1 -ml-1">
+            className="text-warm-400 hover:text-warm-700 transition-calm p-1 -ml-1 shrink-0">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-display text-warm-900 flex-1">Detalhes do cliente</h1>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setAnamnesisOpen(true)}>
-            <ClipboardList size={14} /> Anamnese
+          <h1 className="text-display text-warm-900 flex-1 min-w-0 truncate">Detalhes do cliente</h1>
+          <Button variant="outline" size="sm" className="gap-1.5 shrink-0 px-2 sm:px-3" onClick={() => setAnamnesisOpen(true)}>
+            <ClipboardList size={14} /> <span className="hidden sm:inline">Anamnese</span>
           </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditOpen(true)}>
-            <Edit2 size={14} /> Editar
+          <Button variant="outline" size="sm" className="gap-1.5 shrink-0 px-2 sm:px-3" onClick={() => setEditOpen(true)}>
+            <Edit2 size={14} /> <span className="hidden sm:inline">Editar</span>
           </Button>
         </motion.div>
 

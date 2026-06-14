@@ -91,38 +91,38 @@ export default function ClientesPage() {
             <h1 className="text-display text-warm-900">Clientes</h1>
             <p className="text-sm text-warm-500 mt-1">{total} cliente{total !== 1 ? 's' : ''} cadastrado{total !== 1 ? 's' : ''}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             {clients.length > 0 && (
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={exportCSV}>
-                <Download size={14} /> CSV
+              <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:px-3" onClick={exportCSV}>
+                <Download size={14} /> <span className="hidden sm:inline">CSV</span>
               </Button>
             )}
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => {
+            <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:px-3" onClick={async () => {
               try {
                 const r = await clientsApi.autoStatus()
                 if (r.total > 0) { toast(`${r.total} status atualizados automaticamente.`); load() }
                 else toast('Nenhum status precisava de atualização.')
               } catch { toast('Erro ao atualizar status.', 'error') }
             }}>
-              <RefreshCw size={14} /> Status auto
+              <RefreshCw size={14} /> <span className="hidden sm:inline">Status auto</span>
             </Button>
-            <Button onClick={openCreate} className="gap-2">
-              <Plus size={16} /> Novo cliente
+            <Button onClick={openCreate} className="gap-1.5 sm:gap-2">
+              <Plus size={16} /> <span className="hidden sm:inline">Novo cliente</span><span className="sm:hidden">Novo</span>
             </Button>
           </div>
         </motion.div>
 
         {/* Filters */}
-        <motion.div variants={item} className="flex gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
+        <motion.div variants={item} className="flex flex-col gap-2">
+          <div className="relative w-full">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-400" />
-            <Input placeholder="Buscar por nome..." className="pl-9"
+            <Input placeholder="Buscar por nome..." className="pl-9 w-full"
               value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
             {(['', 'ativo', 'risco', 'inativo'] as const).map(s => (
               <button key={s} onClick={() => setStatus(s)}
-                className={cn('px-3 py-1.5 rounded-lg text-xs font-medium transition-calm',
+                className={cn('px-3 py-1.5 rounded-lg text-xs font-medium transition-calm whitespace-nowrap shrink-0',
                   status === s ? 'bg-rose-100 text-rose-600' : 'bg-white border border-warm-200 text-warm-500 hover:bg-warm-50')}>
                 {s === '' ? 'Todos' : statusConfig[s]?.label ?? s}
               </button>

@@ -89,14 +89,14 @@ export default function FinanceiroPage() {
           <h1 className="text-display text-warm-900">Financeiro</h1>
           <p className="text-sm text-warm-500 mt-1">Acompanhe o faturamento da sua clínica</p>
         </div>
-        <div className="flex gap-2 shrink-0 print:hidden">
-          <Button variant="outline" size="sm" className="gap-1.5"
+        <div className="flex gap-1.5 sm:gap-2 shrink-0 print:hidden">
+          <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:px-3"
             onClick={() => router.push('/relatorio')}>
-            <FileText size={14} /> Relatório
+            <FileText size={14} /> <span className="hidden sm:inline">Relatório</span>
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5"
+          <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:px-3"
             onClick={() => window.print()}>
-            <Printer size={14} /> Imprimir
+            <Printer size={14} /> <span className="hidden sm:inline">Imprimir</span>
           </Button>
         </div>
       </motion.div>

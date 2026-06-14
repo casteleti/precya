@@ -78,7 +78,7 @@ export default function ProtocolosPage() {
 
         {/* KPIs */}
         {!loading && protocols.length > 0 && (
-          <motion.div variants={item} className="grid grid-cols-3 gap-3">
+          <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
             <Card className="px-4 py-3">
               <p className="text-xs text-warm-400">Total</p>
               <p className="text-xl font-bold text-warm-900">{protocols.length}</p>

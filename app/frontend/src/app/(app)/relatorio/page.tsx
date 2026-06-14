@@ -103,7 +103,7 @@ export default function RelatorioPage() {
           <motion.div variants={item} className="print-page bg-white rounded-2xl border border-warm-200 shadow-soft overflow-hidden">
 
             {/* Cabeçalho do relatório */}
-            <div className="px-8 pt-8 pb-6 border-b border-warm-100">
+            <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-6 border-b border-warm-100">
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-warm-900">
@@ -158,9 +158,9 @@ export default function RelatorioPage() {
                 </div>
 
                 {/* Lista completa */}
-                <div className="px-8 py-5">
+                <div className="px-4 sm:px-8 py-5 overflow-x-auto">
                   <h3 className="text-xs font-semibold text-warm-500 uppercase tracking-wide mb-3">Sessões realizadas</h3>
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm min-w-[320px]">
                     <thead>
                       <tr className="border-b border-warm-100">
                         <th className="text-left text-xs text-warm-400 font-medium pb-2">Data</th>

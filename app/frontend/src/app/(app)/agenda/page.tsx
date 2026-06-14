@@ -210,11 +210,11 @@ export default function AgendaPage() {
 
         {/* Day schedule */}
         <motion.div variants={item}>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-col gap-2 mb-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wide">
               {format(selectedDay, "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </h2>
-            <div className="flex gap-1">
+            <div className="flex gap-1 overflow-x-auto scrollbar-none pb-0.5">
               {[
                 { value: '', label: 'Todas' },
                 { value: 'not_confirmed', label: 'A confirmar' },
@@ -222,7 +222,7 @@ export default function AgendaPage() {
                 { value: 'completed', label: 'Concluídas' },
               ].map(f => (
                 <button key={f.value} onClick={() => setFilterStatus(f.value)}
-                  className={cn('px-2 py-1 rounded-lg text-[10px] font-medium transition-calm',
+                  className={cn('px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-calm whitespace-nowrap shrink-0',
                     filterStatus === f.value ? 'bg-rose-100 text-rose-600' : 'text-warm-400 hover:bg-warm-100')}>
                   {f.label}
                 </button>
@@ -265,8 +265,8 @@ export default function AgendaPage() {
                           <div className="h-full bg-rose-400 transition-all duration-1000" style={{ width: `${progressPct}%` }} />
                         </div>
                       )}
-                      <div className="flex items-center gap-4 px-4 py-3.5">
-                        <div className="flex flex-col items-center w-14 shrink-0">
+                      <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3">
+                        <div className="flex flex-col items-center w-12 shrink-0">
                           <span className="text-sm font-bold text-warm-900">
                             {format(parseISO(s.startTime), 'HH:mm')}
                           </span>
@@ -274,7 +274,7 @@ export default function AgendaPage() {
                             {format(parseISO(s.endTime), 'HH:mm')}
                           </span>
                         </div>
-                        <div className="w-0.5 h-10 bg-warm-100 rounded-full shrink-0" />
+                        <div className="w-0.5 h-9 bg-warm-100 rounded-full shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className={cn('text-sm font-medium truncate', isDone ? 'text-warm-400 line-through' : 'text-warm-900')}>{s.client.name}</p>
                           {s.notes && <p className="text-xs text-warm-400 truncate mt-0.5">{s.notes}</p>}
@@ -284,21 +284,26 @@ export default function AgendaPage() {
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-medium border', cfg.color)}>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className={cn('hidden sm:inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium border', cfg.color)}>
                             {cfg.label}
                           </span>
+                          <span className={cn('sm:hidden w-2 h-2 rounded-full shrink-0',
+                            s.status === 'confirmed' ? 'bg-sage-400' :
+                            s.status === 'completed' ? 'bg-warm-300' :
+                            s.status === 'cancelled' ? 'bg-red-300' : 'bg-amber-400'
+                          )} />
                           <button
                             onClick={() => setActionId(isActive ? null : s.id)}
-                            className={cn('p-1 rounded-lg transition-calm', isActive ? 'bg-warm-100 text-warm-700' : 'text-warm-300 hover:text-warm-600')}
+                            className={cn('p-1.5 rounded-lg transition-calm min-w-[32px] min-h-[32px] flex items-center justify-center', isActive ? 'bg-warm-100 text-warm-700' : 'text-warm-300 hover:text-warm-600')}
                           >
                             {isActive ? <X size={15} /> : <Edit2 size={14} />}
                           </button>
                         </div>
                       </div>
                       {isActive && (
-                        <div className="px-4 pb-3 flex flex-col gap-2">
-                          <div className="flex items-center gap-2 flex-wrap">
+                        <div className="px-3 sm:px-4 pb-3 flex flex-col gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             {(s.status === 'not_confirmed' || s.status === 'confirmed') && (
                               <button onClick={() => router.push(`/sessao/${s.id}`)}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-medium hover:bg-rose-600 transition-calm">
