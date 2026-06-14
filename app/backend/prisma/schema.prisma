@@ -73,6 +73,7 @@ model Schedule {
   startTime         DateTime
   endTime           DateTime
   status            String    @default("not_confirmed") // not_confirmed | confirmed | completed | cancelled
+  confirmToken      String?   @unique
   whatsappSent      Boolean   @default(false)
   whatsappConfirmed Boolean   @default(false)
   price             Decimal?  @db.Decimal(10, 2)

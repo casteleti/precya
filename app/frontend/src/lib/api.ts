@@ -88,6 +88,7 @@ export interface Schedule {
   status: 'not_confirmed' | 'confirmed' | 'completed' | 'cancelled'
   price: string | null
   notes: string | null
+  confirmToken: string | null
   createdAt: string
 }
 

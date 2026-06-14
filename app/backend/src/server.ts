@@ -8,6 +8,7 @@ import schedulesRoute from './routes/schedules'
 import dashboardRoute from './routes/dashboard'
 import clinicRoute from './routes/clinic'
 import anamnesisRoute from './routes/anamnesis'
+import publicRoute from './routes/public'
 
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION:', err)
@@ -32,6 +33,7 @@ async function start() {
     app.register(dashboardRoute)
     app.register(clinicRoute)
     app.register(anamnesisRoute)
+    app.register(publicRoute)
   } catch (err) {
     console.error('ERROR REGISTERING ROUTES:', err)
     process.exit(1)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock, Edit2, X, CheckCircle2, Ban, MessageCircle, Play } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Calendar, Loader2, Clock, Edit2, X, CheckCircle2, Ban, MessageCircle, Play, Link2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { schedulesApi, type Schedule } from '@/lib/api'
@@ -333,6 +333,16 @@ export default function AgendaPage() {
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-600 text-xs font-medium hover:bg-green-100 transition-calm">
                               <MessageCircle size={12} /> WhatsApp
                             </a>
+                            {s.confirmToken && s.status === 'not_confirmed' && (
+                              <button
+                                onClick={() => {
+                                  const url = `${window.location.origin}/confirmar/${s.confirmToken}`
+                                  navigator.clipboard.writeText(url).then(() => toast('Link copiado!'))
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 text-sky-600 text-xs font-medium hover:bg-sky-100 transition-calm">
+                                <Link2 size={12} /> Copiar link
+                              </button>
+                            )}
                             {s.status === 'not_confirmed' && (
                               <button onClick={() => handleStatusChange(s.id, 'confirmed')}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-medium hover:bg-amber-100 transition-calm">

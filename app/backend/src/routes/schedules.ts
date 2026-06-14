@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { PrismaClient } from '@prisma/client'
+import { randomUUID } from 'crypto'
 import { verifyToken } from '../middleware/auth'
 
 const prisma = new PrismaClient()
@@ -66,6 +67,7 @@ export default async function schedulesRoute(app: FastifyInstance) {
         price: body.price ?? null,
         notes: body.notes ?? null,
         status: body.status ?? 'not_confirmed',
+        confirmToken: randomUUID(),
       },
       include: { client: { select: { id: true, name: true, phone: true } } },
     })
