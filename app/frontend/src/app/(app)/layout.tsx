@@ -13,6 +13,7 @@ import {
   LogOut,
   Search,
   TrendingUp,
+  ClipboardList,
 } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/clientes',     icon: Users,           label: 'Clientes' },
   { href: '/financeiro',   icon: BarChart2,       label: 'Financeiro' },
   { href: '/stats',        icon: TrendingUp,      label: 'Stats' },
+  { href: '/protocolos',   icon: ClipboardList,   label: 'Protocolos' },
   { href: '/configuracoes',icon: Settings,        label: 'Config.' },
 ]
 

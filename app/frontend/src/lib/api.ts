@@ -168,3 +168,27 @@ export const anamnesisApi = {
       body: JSON.stringify({ responses }),
     }),
 }
+
+// ─── Protocols ────────────────────────────────────────────────────────────────
+
+export interface Protocol {
+  id: string
+  name: string
+  description: string | null
+  totalSessions: number
+  successCount: number
+  successRate: string
+  avgRating: string
+  createdAt: string
+}
+
+export const protocolsApi = {
+  list: () => apiFetch<Protocol[]>('/api/protocols'),
+  get: (id: string) => apiFetch<Protocol>(`/api/protocols/${id}`),
+  create: (data: { name: string; description?: string; totalSessions?: number }) =>
+    apiFetch<Protocol>('/api/protocols', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: { name?: string; description?: string; totalSessions?: number }) =>
+    apiFetch<Protocol>(`/api/protocols/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) => apiFetch<void>(`/api/protocols/${id}`, { method: 'DELETE' }),
+  sessions: (id: string) => apiFetch<import('./api').Schedule[]>(`/api/protocols/${id}/sessions`),
+}
